@@ -29,8 +29,8 @@ public class ProdReviewService {
     @Value("${upload.directory.product.image}")
     private String folder;
 
-    @Autowired
-    private S3Service s3Service;
+    //@Autowired
+    //private S3Service s3Service;
 
     private final ProdReviewMapper prodReviewMapper;
     private final ProductMapper productMapper;
@@ -87,7 +87,7 @@ public class ProdReviewService {
             for (MultipartFile multipartFile : multipartFiles) {
                 // 첨부파일을 지정된 경로에 저장한다.
                 String filename = System.currentTimeMillis() + multipartFile.getOriginalFilename();
-                s3Service.uploadFile(multipartFile, bucketName, folder, filename);
+                //s3Service.uploadFile(multipartFile, bucketName, folder, filename);
 
                 // ReviewImage 객체에 파일 정보를 저장하고, 테이블에도 저장한다.
                 ProdReviewImg prodImg = new ProdReviewImg();

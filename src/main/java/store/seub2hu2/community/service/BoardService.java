@@ -34,8 +34,8 @@ public class BoardService {
     @Value("${cloud.aws.s3.bucket}")
     private String bucketName;
 
-    @Autowired
-    private S3Service s3Service;
+    //@Autowired
+    //private S3Service s3Service;
 
 
     @Autowired
@@ -70,7 +70,7 @@ public class BoardService {
         if (multipartFile != null && !multipartFile.isEmpty()) {
             String originalFilename = multipartFile.getOriginalFilename();
             String filename = System.currentTimeMillis() + originalFilename;
-            s3Service.uploadFile(multipartFile, bucketName, saveDirectory, filename);
+            //s3Service.uploadFile(multipartFile, bucketName, saveDirectory, filename);
 
             UploadFile uploadFile = new UploadFile();
             uploadFile.setOriginalName(originalFilename);
@@ -204,7 +204,7 @@ public class BoardService {
             // 신규파일 정보를 조회하여 BOARD_UPLOADFILES 테이블에 저장
             String originalFilename = multipartFile.getOriginalFilename();
             String filename = System.currentTimeMillis() + originalFilename;
-            s3Service.uploadFile(multipartFile, bucketName, saveDirectory, filename);
+            //s3Service.uploadFile(multipartFile, bucketName, saveDirectory, filename);
 
             UploadFile uploadFile = new UploadFile();
             uploadFile.setNo(savedBoard.getNo());

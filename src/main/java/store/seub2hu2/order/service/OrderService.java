@@ -8,6 +8,7 @@ import store.seub2hu2.delivery.mapper.DeliveryMapper;
 import store.seub2hu2.delivery.vo.Delivery;
 import store.seub2hu2.mypage.dto.*;
 import store.seub2hu2.order.dto.OrderForm;
+import store.seub2hu2.order.exception.DatabaseSaveException;
 import store.seub2hu2.order.mapper.OrderMapper;
 import store.seub2hu2.order.vo.Order;
 import store.seub2hu2.order.vo.OrderItem;
@@ -156,5 +157,40 @@ public class OrderService {
         deliveryMapper.updateDeliveryStatus(delivery);
 
         return dto;
+    }
+
+    /**
+     * 새로운 주문을 생성하고 저장합니다.
+     * @param paymentDto 결제 정보
+     * @return 생성된 주문 객체 (자동 생성된 orderNo 포함)
+     */
+    public Order createOrder(PaymentDto paymentDto) {
+        Order order = new Order();
+        order.setTotalPrice(paymentDto.getTotalPrice());
+        order.setDeliveryPrice(paymentDto.getDeliveryPrice());
+        order.setDiscountPrice(paymentDto.getDiscountPrice());
+        order.setFinalTotalPrice(paymentDto.getFinalTotalPrice());
+        order.setUserNo(paymentDto.getUserNo());
+        order.setOrderId(new OrderResultDto().generateOrderId());
+
+        try {
+            orderMapper.insertOrders(order);
+        } catch (Exception ex) {
+            throw new DatabaseSaveException("주문 정보 저장 실패", ex);
+        }
+
+        return order;
+    }
+
+    /**
+     * 주문 상품들을 저장합니다.
+     * @param orderItems 주문 상품 목록
+     */
+    public void saveOrderItems(List<OrderItem> orderItems) {
+        try {
+            orderMapper.insertOrderItems(orderItems);
+        } catch (Exception ex) {
+            throw new DatabaseSaveException("주문 상품 정보 저장 실패", ex);
+        }
     }
 }

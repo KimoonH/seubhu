@@ -31,8 +31,8 @@ public class ReviewService {
     @Value("${upload.directory.course}")
     private String folder;
 
-    @Autowired
-    private S3Service s3Service;
+    //@Autowired
+    //private S3Service s3Service;
 
     @Autowired
     private ReviewMapper reviewMapper;
@@ -105,7 +105,7 @@ public class ReviewService {
             for (MultipartFile multipartFile : multipartFiles) {
                 // 첨부파일을 지정된 경로에 저장한다.
                 String filename = System.currentTimeMillis() + multipartFile.getOriginalFilename();
-                s3Service.uploadFile(multipartFile, bucketName, folder, filename);
+                //s3Service.uploadFile(multipartFile, bucketName, folder, filename);
 
                 // ReviewImage 객체에 파일 정보를 저장하고, 테이블에도 저장한다.
                 ReviewImage reviewImage = new ReviewImage();
@@ -144,7 +144,7 @@ public class ReviewService {
         // 4. 버킷에 저장된 리뷰 이미지를 삭제한다.
         List<ReviewImage> reviewImages = reviewMapper.getReviewImagesByNo(reviewNo);
         for (ReviewImage reviewImage : reviewImages) {
-            s3Service.deleteFile(bucketName, folder, reviewImage.getName());
+            //s3Service.deleteFile(bucketName, folder, reviewImage.getName());
         }
     }
 }

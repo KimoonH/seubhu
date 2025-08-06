@@ -15,7 +15,8 @@ import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
-@Service
+// S3 임시 비활성화
+// @Service
 @RequiredArgsConstructor
 public class S3Service {
 	

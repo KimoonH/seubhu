@@ -41,8 +41,8 @@ public class NoticeController {
     @Value("${cloud.aws.s3.bucket}")
     private String bucketName;
 
-    @Autowired
-    private S3Service s3Service;
+    //@Autowired
+    //private S3Service s3Service;
 
     @Autowired
     public NoticeService noticeService;
@@ -101,7 +101,7 @@ public class NoticeController {
 
         return "community/notice/detail";
     }
-
+/*
     @GetMapping("/filedown")
     public ResponseEntity<ByteArrayResource> download(@RequestParam("no") int noticeNo) {
 
@@ -122,7 +122,7 @@ public class NoticeController {
             throw new RuntimeException(ex);
         }
     }
-
+*/
     @GetMapping("/modify")
     public String modifyForm(@RequestParam("no") int noticeNo, Model model) {
         Notice notice = noticeService.getNoticeDetail(noticeNo);

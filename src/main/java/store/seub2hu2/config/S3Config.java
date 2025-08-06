@@ -9,7 +9,8 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 
-@Configuration
+// S3 임시 비활성화
+// @Configuration
 public class S3Config {
 
 	@Value("${cloud.aws.credentials.access-key}")
@@ -31,7 +32,7 @@ public class S3Config {
 	 *   - AWS의 액세스 키와 시크릿 키를 담고 있는 객체다.
 	 *   - AwsBasicCredentials.create(accessKey, secretKey)는 제공된 액세스 키와 시크릿 키를 기반으로 자격 증명 객체를 생성한다.
 	 */
-	@Bean
+	//@Bean
 	S3Client s3Client() {
 		return S3Client.builder()
 				.region(Region.AP_NORTHEAST_2)

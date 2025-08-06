@@ -40,8 +40,8 @@ public class MessageController {
 
     private String folder = "resources/messages";
 
-    @Autowired
-    private S3Service s3Service;
+    //@Autowired
+    //private S3Service s3Service;
 
     @Autowired
     private MessageService messageService;
@@ -193,7 +193,7 @@ public class MessageController {
         return "redirect:/message/list";
     }
 
-
+/*
     @GetMapping("/download")
     public ResponseEntity<Resource> downloadfile(@RequestParam("no") int no) throws Exception {
         // 게시글 정보 조회
@@ -212,5 +212,5 @@ public class MessageController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8''" + encodedFilename)  // 파일명 인코딩 처리
                 .body(resource);
     }
-
+*/
 }

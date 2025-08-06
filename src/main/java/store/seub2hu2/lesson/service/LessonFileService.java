@@ -26,7 +26,7 @@ public class LessonFileService {
     @Value("${cloud.aws.s3.bucket}")
     private String bucketName;
 
-    private final S3Service s3Service;
+    //private final S3Service s3Service;
     private final LessonFileMapper lessonFileMapper;
 
     public void saveLessonImages(Integer lessonNo, MultipartFile thumbnail, MultipartFile mainImage) {
@@ -38,7 +38,7 @@ public class LessonFileService {
 
                 // 저장할 파일명 생성
                 String thumbnailFileName = UUID.randomUUID() + thumbnail.getOriginalFilename();
-                s3Service.uploadFile(thumbnail, bucketName, saveDirectory, thumbnailFileName);
+                //s3Service.uploadFile(thumbnail, bucketName, saveDirectory, thumbnailFileName);
 
                 // LessonFile 객체 생성 (Base64 데이터를 저장소나 DB에 저장 가능)
                 LessonFile thumbnailFile = new LessonFile(
@@ -59,7 +59,7 @@ public class LessonFileService {
 
                 // 저장할 파일명 생성
                 String mainImageFileName = UUID.randomUUID() + mainImage.getOriginalFilename();
-                s3Service.uploadFile(mainImage, bucketName, saveDirectory, mainImageFileName);
+                //s3Service.uploadFile(mainImage, bucketName, saveDirectory, mainImageFileName);
 
                 // LessonFile 객체 생성 (Base64 데이터를 저장소나 DB에 저장 가능)
                 LessonFile mainImageFile = new LessonFile(
@@ -108,7 +108,7 @@ public class LessonFileService {
 
                 // 저장할 파일명 생성
                 String thumbnailFileName = UUID.randomUUID() + thumbnail.getOriginalFilename();
-                s3Service.uploadFile(thumbnail, bucketName, saveDirectory, thumbnailFileName);
+                //s3Service.uploadFile(thumbnail, bucketName, saveDirectory, thumbnailFileName);
 
                 // LessonFile 객체 생성 (Base64 데이터를 저장소나 DB에 저장 가능)
                 LessonFile thumbnailFile = new LessonFile(
@@ -129,7 +129,7 @@ public class LessonFileService {
 
                 // 저장할 파일명 생성
                 String mainImageFileName = UUID.randomUUID() + mainImage.getOriginalFilename();
-                s3Service.uploadFile(thumbnail, bucketName, saveDirectory, mainImageFileName);
+                //s3Service.uploadFile(thumbnail, bucketName, saveDirectory, mainImageFileName);
 
                 // LessonFile 객체 생성 (Base64 데이터를 저장소나 DB에 저장 가능)
                 LessonFile mainImageFile = new LessonFile(
@@ -145,7 +145,7 @@ public class LessonFileService {
 
         if (thumbnail != null && !thumbnail.isEmpty()) {
             String thumbnailFileName = UUID.randomUUID() + thumbnail.getOriginalFilename();
-            s3Service.uploadFile(thumbnail, bucketName, saveDirectory, thumbnailFileName);
+            //s3Service.uploadFile(thumbnail, bucketName, saveDirectory, thumbnailFileName);
             LessonFile thumbnailFile = new LessonFile(
                     lessonNo, thumbnailFileName, "THUMBNAIL", saveDirectory
             );
@@ -154,7 +154,7 @@ public class LessonFileService {
 
         if (mainImage != null && !mainImage.isEmpty()) {
             String mainImageFileName = UUID.randomUUID() + mainImage.getOriginalFilename();
-            s3Service.uploadFile(thumbnail, bucketName, saveDirectory, mainImageFileName);
+            //s3Service.uploadFile(thumbnail, bucketName, saveDirectory, mainImageFileName);
             LessonFile mainImageFile = new LessonFile(
                     lessonNo, mainImageFileName, "MAIN_IMAGE", saveDirectory
             );

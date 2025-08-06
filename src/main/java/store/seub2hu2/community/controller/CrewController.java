@@ -47,8 +47,8 @@ public class CrewController {
     @Value("${cloud.aws.s3.bucket}")
     private String bucketName;
 
-    @Autowired
-    private S3Service s3Service;
+    //@Autowired
+    //private S3Service s3Service;
 
     @Autowired
     public CrewService crewService;
@@ -192,7 +192,7 @@ public class CrewController {
         crewService.deleteCrewFile(thumbnailNo);
         return "redirect:modify?no=" + crewNo;
     }
-
+/*
     @GetMapping("/filedown")
     public ResponseEntity<ByteArrayResource> download(@RequestParam("no") int crewNo) {
 
@@ -202,7 +202,7 @@ public class CrewController {
             String originalFileName = crew.getUploadFile().getSaveName();
             String savedFilename = crew.getUploadFile().getSaveName();
 
-            ByteArrayResource byteArrayResource = s3Service.downloadFile(bucketName, fileSaveDirectory, savedFilename);
+            //ByteArrayResource byteArrayResource = s3Service.downloadFile(bucketName, fileSaveDirectory, savedFilename);
 
             String encodedFileName = URLEncoder.encode(savedFilename.substring(13), "UTF-8");
 
@@ -215,7 +215,7 @@ public class CrewController {
             throw new RuntimeException(ex);
         }
     }
-
+*/
 
     @GetMapping("/login")
     public String login(){

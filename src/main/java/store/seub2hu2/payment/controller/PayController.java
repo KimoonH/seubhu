@@ -93,25 +93,6 @@ public class PayController {
 
         String type = (String) param.get("type");
 
-
-        if (type.equals("레슨")) {
-            String lessonNoStr = (String) param.get("lessonNo");
-            int lessonNo = Integer.parseInt(lessonNoStr);
-
-            // 카카오 결제 요청하기
-            ApproveResponse approveResponse = kakaoPayService.payApprove(tid, pgToken, lessonNo);
-
-            PaymentDto paymentDto = new PaymentDto();
-            paymentDto.setUserId(loginUser.getId());
-            paymentDto.setPaymentId(tid);
-            paymentDto.setTotalAmount(approveResponse.getAmount().getTotal());
-            paymentDto.setLessonNo(lessonNo);
-
-            log.info("lessonReservationPay = {}", paymentDto);
-            lessonReservationService.saveLessonReservation(paymentDto);
-
-        }
-
         if (type.equals("상품")) {
             // 결재정보를 저장한다.
             String orderStr = (String) param.get("orderNo");
@@ -158,22 +139,8 @@ public class PayController {
                            , @AuthenticationPrincipal LoginUser loginUser
             , Model model) {
 
-        if ("레슨".equals(paymentDto.getType())){
 
-            String paymentId= paymentDto.getPaymentId();
-            // 예약 정보 조회
-            LessonReservation lessonReservation = lessonReservationService.getLessonReservationByPayId(paymentId);
-            // 카카오 결제 취소하기
-            CancelResponse cancelResponse = kakaoPayService.payCancel(paymentDto, paymentId);
-            // 예약 상태 변경
-            if (lessonReservation != null) {
-                lessonReservationService.cancelReservation(paymentId, ReservationStatus.CANCELLED, paymentDto.getLessonNo());
-            }
-
-            model.addAttribute("cancelResponse", cancelResponse);
-            return "redirect:/lesson/reservation";
-
-        } else if ("상품".equals(paymentDto.getType())) {
+        if("상품".equals(paymentDto.getType())) {
 
             // 주문관련 정보 수정
             OrderResultDto dto = orderService.cancelOrder(paymentDto);

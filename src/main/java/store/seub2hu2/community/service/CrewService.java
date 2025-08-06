@@ -39,8 +39,8 @@ public class CrewService {
     @Value("${cloud.aws.s3.bucket}")
     private String bucketName;
 
-    @Autowired
-    private S3Service s3Service;
+    //@Autowired
+    //private S3Service s3Service;
 
 
     @Autowired
@@ -72,7 +72,7 @@ public class CrewService {
         } else if (!image.isEmpty()) {
             String originalImageName = "crew" + form.getNo() + "_" + image.getOriginalFilename();
             String imageName = System.currentTimeMillis() + originalImageName;
-            s3Service.uploadFile(image, bucketName, saveImageDirectory, imageName);
+            //s3Service.uploadFile(image, bucketName, saveImageDirectory, imageName);
 
             UploadFile uploadThumbnail = new UploadFile();
             uploadThumbnail.setOriginalName(originalImageName);
@@ -88,7 +88,7 @@ public class CrewService {
             String originalFileName = upfile.getOriginalFilename();
             String filename = System.currentTimeMillis() + originalFileName;
 
-            s3Service.uploadFile(upfile, bucketName, saveFileDirectory, filename);
+            //s3Service.uploadFile(upfile, bucketName, saveFileDirectory, filename);
 
             UploadFile uploadFile = new UploadFile();
             uploadFile.setOriginalName(originalFileName);
@@ -214,7 +214,7 @@ public class CrewService {
                 // 신규 썸네일 정보를 조회하여 CREW_FILES 테이블에 저장
                 String originalImageName = "crew" + form.getNo() + "_" + image.getOriginalFilename();
                 String ImageName = System.currentTimeMillis() + originalImageName;
-                s3Service.uploadFile(image, bucketName, saveImageDirectory, ImageName);
+                //s3Service.uploadFile(image, bucketName, saveImageDirectory, ImageName);
 
                 UploadFile uploadThumbnail = new UploadFile();
                 uploadThumbnail.setNo(savedCrew.getNo());
@@ -238,7 +238,7 @@ public class CrewService {
             String originalFileName = upfile.getOriginalFilename();
             String filename = System.currentTimeMillis() + originalFileName;
 
-            s3Service.uploadFile(upfile, bucketName, saveFileDirectory, filename);
+            //s3Service.uploadFile(upfile, bucketName, saveFileDirectory, filename);
 
             UploadFile uploadFile = new UploadFile();
             uploadFile.setNo(savedCrew.getNo());

@@ -29,8 +29,8 @@ public class NoticeService {
     @Value("${cloud.aws.s3.bucket}")
     private String bucketName;
 
-    @Autowired
-    private S3Service s3Service;
+    //@Autowired
+    //private S3Service s3Service;
 
     @Autowired
     private NoticeMapper noticeMapper;
@@ -51,7 +51,7 @@ public class NoticeService {
         if (multipartFile != null && !multipartFile.isEmpty()) {
             String originalFilename = multipartFile.getOriginalFilename();
             String filename = System.currentTimeMillis() + originalFilename;
-            s3Service.uploadFile(multipartFile, bucketName, saveDirectory, filename);
+            //s3Service.uploadFile(multipartFile, bucketName, saveDirectory, filename);
 
             UploadFile uploadFile = new UploadFile();
             uploadFile.setOriginalName(originalFilename);
@@ -133,7 +133,7 @@ public class NoticeService {
 
             String originalFilename = multipartFile.getOriginalFilename();
             String filename = System.currentTimeMillis() + originalFilename;
-            s3Service.uploadFile(multipartFile, bucketName, saveDirectory, filename);
+            //s3Service.uploadFile(multipartFile, bucketName, saveDirectory, filename);
 
             UploadFile uploadFile = new UploadFile();
             uploadFile.setOriginalName(originalFilename);

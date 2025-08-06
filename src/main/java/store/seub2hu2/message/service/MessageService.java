@@ -43,8 +43,8 @@ public class MessageService {
     @Value("${upload.directory.message}")
     private String saveDirectory;
 
-    @Autowired
-    private S3Service s3Service;
+    //@Autowired
+    //private S3Service s3Service;
 
 
 
@@ -65,7 +65,7 @@ public class MessageService {
             String filename = System.currentTimeMillis() + originalFilename;
             long fileSize = multipartFile.getSize();  // 파일 사이즈
 
-            s3Service.uploadFile(multipartFile, bucketName, folder, filename);
+            //s3Service.uploadFile(multipartFile, bucketName, folder, filename);
             // MessageFile 객체 생성
             MessageFile messageFile = new MessageFile();
             messageFile.setOriginalName(originalFilename);

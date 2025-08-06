@@ -21,8 +21,8 @@ public class FileUploadService {
     @Value("${upload.directory.userImage}")
     private String saveDirectory;
 
-    @Autowired
-    private S3Service s3Service;
+    //@Autowired
+    //private S3Service s3Service;
 
     @Value("${file.upload-dir}")
     private String uploadDir;
@@ -71,7 +71,7 @@ public class FileUploadService {
             String originalFilename = file.getOriginalFilename();
             String filename = System.currentTimeMillis() + originalFilename;
 
-            s3Service.uploadFile(file, bucketName, saveDirectory, filename);
+            //s3Service.uploadFile(file, bucketName, saveDirectory, filename);
 
             userImage.setUserNo(userNo);
             userImage.setImgName(filename);

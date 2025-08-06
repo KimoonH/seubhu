@@ -4,9 +4,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import store.seub2hu2.order.exception.DatabaseSaveException;
+import store.seub2hu2.order.exception.OutOfStockException;
+import store.seub2hu2.order.exception.ProductNotFoundException;
+import store.seub2hu2.order.exception.StockInsufficientException;
+import store.seub2hu2.order.vo.OrderItem;
 import store.seub2hu2.product.dto.*;
 import store.seub2hu2.product.mapper.ProductMapper;
 import store.seub2hu2.product.vo.Product;
+import store.seub2hu2.product.vo.Size;
 import store.seub2hu2.util.ListDto;
 import store.seub2hu2.util.Pagination;
 
@@ -102,6 +108,73 @@ public class ProductService {
         ListDto<ProdListDto> dto = new ListDto<>(products, pagination);
 
         return dto;
+    }
+
+    /**
+     * 주문 상품 목록으로부터 표시용 상품명을 생성합니다.
+     * @param orderItems 주문 상품 목록
+     * @return "상품명" 또는 "상품명 외 N개" 형태의 문자열
+     */
+    public String generateOrderItemName(List<OrderItem> orderItems) {
+        if (orderItems == null || orderItems.isEmpty()) {
+            throw new IllegalArgumentException("주문 상품 목록이 비어있습니다.");
+        }
+
+        int prodNo = orderItems.get(0).getProdNo();
+        ProdDetailDto prodDetailDto = productMapper.getProductByNo(prodNo);
+
+        if (prodDetailDto == null) {
+            throw new ProductNotFoundException("상품 번호 " + prodNo + "에 대한 정보가 없습니다.");
+        }
+
+        String itemName = prodDetailDto.getName();
+
+        if (orderItems.size() > 1) {
+            itemName = itemName + " 외 " + (orderItems.size() - 1) + "개";
+        }
+
+        return itemName;
+    }
+
+    /**
+     * 주문 상품들의 재고를 확인하고 업데이트합니다.
+     * @param orderItems 주문 상품 목록
+     * @param orderNo 주문 번호
+     * @param itemName 상품명 (에러 메시지용)
+     */
+    public void validateAndUpdateStock(List<OrderItem> orderItems, int orderNo, String itemName) {
+        for(OrderItem item : orderItems) {
+            Size size = productMapper.getSizeAmount(item.getSizeNo());
+
+            // 주문 상품의 재고를 확인한다.
+            if(size.getAmount() == 0) {
+                throw new OutOfStockException("상품" + item.getSizeNo() +"는 재고가 없습니다.");
+            }
+
+            // 재고가 부족한 경우 StockInsufficientException을 던집니다.
+            if (size.getAmount() < item.getStock()) {
+                throw new StockInsufficientException("상품 " + itemName + item.getSizeNo() + "의 재고가 부족합니다. 요청한 수량: "
+                        + item.getStock() + ", 남은 재고: " + size.getAmount());
+            }
+
+            // OrderItem 설정
+            item.setNo(item.getNo());
+            item.setOrderNo(orderNo);
+            item.setProdNo(item.getProdNo());
+            item.setSizeNo(item.getSizeNo());
+            item.setPrice(item.getPrice());
+            item.setStock(item.getStock());
+            item.setEachTotalPrice(item.getPrice() * item.getStock());
+
+            // 주문 상품에 대한 재고를 감소한다.
+            size.setAmount(size.getAmount() - item.getStock());
+
+            try {
+                productMapper.updateAmount(size);
+            } catch (Exception ex) {
+                throw new DatabaseSaveException("주문 상품의 재고 업데이트 실패", ex);
+            }
+        }
     }
 
 }

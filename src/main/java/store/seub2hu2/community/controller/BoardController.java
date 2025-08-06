@@ -43,8 +43,8 @@ public class BoardController {
     @Value("${cloud.aws.s3.bucket}")
     private String bucketName;
 
-    @Autowired
-    private S3Service s3Service;
+    //@Autowired
+    //private S3Service s3Service;
 
     @Autowired
     public BoardService boardService;
@@ -208,7 +208,7 @@ public class BoardController {
         boardService.deleteBoardFile(boardNo, fileNo);
         return "redirect:modify?no=" + boardNo;
     }
-
+/*
     // 요청 URL : comm/filedown?no=xxx
     @GetMapping("/filedown")
     public ResponseEntity<ByteArrayResource> download(@RequestParam("no") int boardNo) {
@@ -216,7 +216,7 @@ public class BoardController {
         Board board = boardService.getBoardDetail(boardNo);
         try {
             String filename = board.getUploadFile().getSaveName();
-            ByteArrayResource byteArrayResource = s3Service.downloadFile(bucketName, saveDirectory, filename);
+            //ByteArrayResource byteArrayResource = s3Service.downloadFile(bucketName, saveDirectory, filename);
 
             String encodedFileName = URLEncoder.encode(filename.substring(13), "UTF-8");
 
@@ -229,7 +229,7 @@ public class BoardController {
             throw new RuntimeException(ex);
         }
     }
-
+*/
     @GetMapping("/login")
     public String login() {
 

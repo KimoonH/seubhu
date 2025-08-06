@@ -45,11 +45,9 @@ public class AdminService {
 //    private final ProductMapper productMapper;
 //
 
-    @Value("${cloud.aws.s3.bucket}")
-    private String bucketName;
-
-    @Autowired
-    private S3Service s3Service;
+     //S3 관련 임시 주석 처리
+     @Value("${cloud.aws.s3.bucket}")
+     private String bucketName;
 
     @Autowired
     private LessonMapper lessonMapper;
@@ -306,7 +304,8 @@ public class AdminService {
 
 
                 //FileUtils.saveMultipartFile(multipartFile, saveDirectory, filename);
-                s3Service.uploadFile(multipartFile, bucketName, saveDirectory, filename);
+                // s3Service.uploadFile(multipartFile, bucketName, saveDirectory, filename);
+                // S3 임시 비활성화 - 파일명만 설정
 
                 course.setFilename(filename);
             }
@@ -332,7 +331,8 @@ public class AdminService {
                 String filename = System.currentTimeMillis() + originalFilename;
 
                 //FileUtils.saveMultipartFile(multipartFile, saveDirectory, filename);
-                s3Service.uploadFile(multipartFile, bucketName, saveDirectory, filename);
+                // s3Service.uploadFile(multipartFile, bucketName, saveDirectory, filename);
+                // S3 임시 비활성화 - 파일명만 설정
 
                 course.setFilename(filename);
             }
@@ -380,7 +380,7 @@ public class AdminService {
         String originalFilename = multipartFile.getOriginalFilename();
         String filename = System.currentTimeMillis() + originalFilename;
 
-        s3Service.uploadFile(multipartFile, bucketName, saveDirectory, filename);
+        //s3Service.uploadFile(multipartFile, bucketName, saveDirectory, filename);
         course.setFilename(filename);
 
         adminMapper.updateCourse(course);

@@ -7,8 +7,10 @@ import store.seub2hu2.cart.dto.CartItemDto;
 import store.seub2hu2.cart.dto.CartRegisterForm;
 import store.seub2hu2.cart.vo.Cart;
 import store.seub2hu2.mypage.mapper.CartMapper;
+import store.seub2hu2.order.vo.OrderItem;
 
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -72,5 +74,30 @@ public class CartService {
 
 
         cartMapper.addToCart(cart);
+    }
+
+    /**
+     * 주문 완료 후 장바구니에서 해당 상품들을 제거합니다.
+     * @param orderItems 주문 상품 목록
+     */
+    public void removeOrderedItems(List<OrderItem> orderItems) {
+        List<Integer> cartNos = new ArrayList<>();
+        List<Integer> invalidCartNos = new ArrayList<>();
+
+        for(OrderItem item : orderItems) {
+            if(item.getCartNo() <= 0) {
+                invalidCartNos.add(item.getCartNo());
+            } else {
+                cartNos.add(item.getCartNo());
+            }
+        }
+
+        if(!invalidCartNos.isEmpty()) {
+            throw new IllegalArgumentException("유효하지 않은 장바구니 번호" + invalidCartNos);
+        }
+
+        if(!cartNos.isEmpty()) {
+            cartMapper.deleteCartItems(cartNos);
+        }
     }
 }
