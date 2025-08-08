@@ -2,6 +2,7 @@ package store.seub2hu2.util;
 
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestAttributes;
@@ -11,6 +12,7 @@ import java.util.Objects;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class SessionUtils {
 
     private final HttpSession session;
@@ -33,5 +35,12 @@ public class SessionUtils {
 
     public void invalidateSession() {
         session.invalidate();
+    }
+
+    public void clearPaymentSession() {
+        removeAttribute("tid");
+        removeAttribute("paymentUserId");
+        removeAttribute("paymentType");
+        log.info("결제 세션 정보 정리 완료");
     }
 }
