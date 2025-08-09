@@ -44,9 +44,7 @@ public class PayController {
 
     private final KakaoPayService kakaoPayService;
     private final SessionUtils sessionUtils;
-
     private final PaymentService paymentService;
-
     private final OrderService orderService;
     private final PayMapper payMapper;
 
@@ -143,8 +141,8 @@ public class PayController {
 
             // 상품 결제만 처리
             if (!"상품".equals(paymentDto.getType())) {
-                // JSP 없으니까 일단 다른 페이지로
-                return "redirect:/mypage/orderhistory?error=invalid_type";
+                // 수정: 에러 JSP 페이지로
+                return "redirect:/pay/error?code=UNSUPPORTED_TYPE";
             }
 
             log.info("상품 결제 취소 요청 - 사용자: {}", loginUser.getId());
@@ -156,33 +154,49 @@ public class PayController {
 
         } catch (Exception e) {
             log.error("상품 결제 취소 중 오류", e);
-            // JSP 없으니까 일단 에러 메시지와 함께 리다이렉트
-            return "redirect:/mypage/orderhistory?error=cancel_failed";
+            // 수정: 에러 JSP 페이지로
+            return "redirect:/pay/error?code=PROCESSING_FAILED";
         }
     }
 
+    /**
+     * 결제 실패 페이지 (카카오페이 결제 실패)
+     */
+    @GetMapping("/fail")
+    public String payFail() {
+        log.info("결제가 실패했습니다.");
+        sessionUtils.clearPaymentSession(); // 세션 정리
+        return "error/pay-fail";
+    }
+
+    /**
+     * 결제 취소 페이지 (카카오페이에서 사용자가 취소)
+     */
+    @GetMapping("/cancel")
+    public String payCancel() {
+        log.info("사용자가 결제를 취소했습니다.");
+        sessionUtils.clearPaymentSession(); // 세션 정리
+        return "error/pay-cancel";
+    }
+
+    /**
+     * 결제 에러 페이지
+     */
     @GetMapping("/error")
-    public String payError(@RequestParam(required = false) String code, Model model) {
+    public String payError(@RequestParam(value = "code",required = false) String code, Model model) {
         log.info("결제 에러 - 코드: {}", code);
 
-        String errorMessage;
-        switch (code) {
-            case "SESSION_EXPIRED":
-                errorMessage = "결제 세션이 만료되었습니다. 다시 시도해주세요.";
-                break;
-            case "INVALID_ORDER":
-                errorMessage = "잘못된 주문번호입니다.";
-                break;
-            case "PROCESSING_FAILED":  // 추가
-                errorMessage = "결제 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
-                break;
-            default:
-                errorMessage = "알 수 없는 오류가 발생했습니다.";
-                break;
-        }
+        String errorMessage = switch (code) {
+            case "SESSION_EXPIRED" -> "결제 세션이 만료되었습니다. 다시 시도해주세요.";
+            case "INVALID_ORDER" -> "잘못된 주문번호입니다.";
+            case "PROCESSING_FAILED" -> "결제 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
+            case "UNSUPPORTED_TYPE" -> "지원하지 않는 결제 타입입니다.";
+            case "USER_MISMATCH" -> "결제 사용자 정보가 일치하지 않습니다.";
+            case "ORDER_NOT_FOUND" -> "주문 정보를 찾을 수 없습니다.";
+            default -> "알 수 없는 오류가 발생했습니다.";
+        };
 
         model.addAttribute("errorMessage", errorMessage);
-
-        return "error/pay-fail";
+        return "error/pay-error";
     }
 }

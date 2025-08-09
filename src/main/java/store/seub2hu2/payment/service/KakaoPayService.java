@@ -31,6 +31,12 @@ public class KakaoPayService {
     @Value("${server.ip}")
     private String serverIp;
 
+    @Value("${kakaopay.cid}")
+    private String cid;
+
+    @Value("${kakaopay.partner-user-id}")
+    private String partnerUserId;
+
     private final KakaoPayApiService kakaoPayApiService;
 
     private final ProductService productService;
@@ -49,11 +55,13 @@ public class KakaoPayService {
         log.info("Pay ready dto = {}", paymentDto);
         Map<String, String> parameters = createBaseParameters(paymentDto);
 
-
         // 상품 결제
         if (paymentDto.getType().equals("상품")) {
             Order order = orderService.createOrder(paymentDto);
             int orderNo = order.getNo();
+
+
+            parameters.put("partner_order_id", String.valueOf(orderNo));
 
             // 주문 상품 정보를 저장한다.
             List<OrderItem> orderItems = paymentDto.getOrderItems();
@@ -85,16 +93,15 @@ public class KakaoPayService {
         parameters.put("fail_url", serverIp + "/pay/fail");
 
 
-
+        log.info("=== 결제준비 partner_order_id: {}", parameters.get("partner_order_id"));
         return kakaoPayApiService.requestPaymentReady(parameters);
     }
 
     @NotNull
     private Map<String, String> createBaseParameters(PaymentDto paymentDto) {
         Map<String, String> parameters = new HashMap<>();
-        parameters.put("cid", "TC0ONETIME");
-        parameters.put("partner_order_id", "1234567890");
-        parameters.put("partner_user_id", "seub2hu2");
+        parameters.put("cid", cid);
+        parameters.put("partner_user_id", partnerUserId);
         parameters.put("quantity", String.valueOf(paymentDto.getQuantity()));
         return parameters;
     }
@@ -103,7 +110,7 @@ public class KakaoPayService {
     // 사용자가 결제 수단을 선택하고 비밀번호를 입력해 결제 인증을 완료한 뒤,
     // 최종적으로 결제 완료 처리를 하는 단계
     public ApproveResponse payApprove(String tid, String pgToken, int orderNo) {
-        return kakaoPayApiService.requestPaymentApprove(tid, pgToken);
+        return kakaoPayApiService.requestPaymentApprove(tid, pgToken, String.valueOf(orderNo));
     }
 
     // 카카오페이 결제 취소

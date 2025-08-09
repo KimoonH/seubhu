@@ -1,0 +1,144 @@
+spring:
+  application:
+    name: seub2hu2
+
+  profiles:
+    active: default
+    include: oauth
+
+  # ?????? ??
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/seub2hu2?serverTimezone=UTC&characterEncoding=UTF-8
+    username: hong
+    password: zxcv1234
+
+  # MVC ??
+  mvc:
+    view:
+      prefix: /WEB-INF/views/
+      suffix: .jsp
+
+  # ?? ??? ??
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 50MB
+      max-request-size: 50MB
+
+  # ?? ??
+  server:
+    servlet:
+      session:
+        persistent: false
+        timeout: 60m
+
+  # ?? ??
+  devtools:
+    livereload:
+      enabled: true
+
+  # Redis ??
+  data:
+    redis:
+      repositories:
+        enabled: true
+      host: 127.0.0.1
+      port: 6379
+
+# ?? ??
+server:
+  ip: http://localhost:8080
+  error:
+    whitelabel:
+      enabled: false
+
+# ?? ??
+logging:
+  level:
+    root: info
+    store.seub2hu2.community.mapper: trace
+    store.seub2hu2.message.mapper: trace
+    store.seub2hu2.admin.mapper: trace
+    store.seub2hu2.course.mapper: trace
+    store.seub2hu2.user.mapper: trace
+    store.seub2hu2.product.mapper: trace
+    store.seub2hu2.payment.mapper: trace
+    store.seub2hu2.order.mapper: trace
+    store.seub2hu2.mypage.mapper: trace
+  pattern:
+    console: "[%d{yyyy-MM-dd HH:mm:ss}] %clr([%50logger{50}])  %msg%n"
+
+# MyBatis ??
+mybatis:
+  mapper-locations: mybatis/mappers/*.xml
+  type-aliases-package: store.seub2hu2.vo
+  type-handlers-package: store.seub2hu2.mypage.handler
+  configuration:
+    log-impl: org.apache.ibatis.logging.log4j2.Log4j2Impl
+    jdbc-type-for-null: NULL
+
+# ?? ??? ??
+file:
+  upload-dir: C:/files/board/
+
+upload:
+  directory:
+    course: resources/images/courseReviewImages
+    board:
+      files: resources/board/files
+    crew:
+      images: resources/crew/images
+      files: resources/crew/files
+    notice:
+      files: resources/notice/files
+    product: resources/images/product
+    lesson: resources/images/lesson
+    message: resources/images/message
+    userImage: resources/images/userImage
+
+project:
+  upload:
+    path: resources/images/course
+
+# ????? ??
+kakaopay:
+  secretKey: DEVEBA187CAA55ABE3A31A58BBF15D24A49AE62B
+  cid: TC0ONETIME
+  partner-user-id: seub2hu2
+  api:
+    ready-url: https://open-api.kakaopay.com/online/v1/payment/ready
+    approve-url: https://open-api.kakaopay.com/online/v1/payment/approve
+    cancel-url: https://open-api.kakaopay.com/online/v1/payment/cancel
+
+# ??? ??
+mail:
+  host: smtp.gmail.com
+  port: 587
+  username: nmomnr@gmail.com
+  password: rlfz vmxl lrps boml
+  auth-code-expiration-millis: 1800000
+  smtp:
+    auth: true
+    starttls:
+      enable: true
+      required: true
+    connectiontimeout: 5000
+    timeout: 5000
+    writetimeout: 5000
+
+# SMS ??
+coolsms:
+  api:
+    key: NCSANPJPA5E7863L
+    secret: 3LICB0G3ZRERCPZSP4NGXE87MDCK8JUA
+    number: 01012345678
+
+# AWS ??
+cloud:
+  aws:
+    credentials:
+      access-key: ${AWS_ACCESS_KEY}
+      secret-key: ${AWS_SECRET_KEY}
+    s3:
+      bucket: 2404-bucket-team-1

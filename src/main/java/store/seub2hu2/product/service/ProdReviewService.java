@@ -26,11 +26,6 @@ public class ProdReviewService {
     @Value("${cloud.aws.s3.bucket}")
     private String bucketName;
 
-    @Value("${upload.directory.product.image}")
-    private String folder;
-
-    //@Autowired
-    //private S3Service s3Service;
 
     private final ProdReviewMapper prodReviewMapper;
     private final ProductMapper productMapper;
