@@ -737,6 +737,7 @@
             orderData.discountPrice = discountPrice;
             orderData.finalTotalPrice = finalTotalPrice;
             orderData.totalQuantity = totalQuantity;
+            orderData.quantity = totalQuantity;
             orderData.type = "상품";
 
             console.log("Final Order Data:", orderData);

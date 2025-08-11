@@ -17,6 +17,7 @@ import store.seub2hu2.payment.dto.CancelResponse;
 import store.seub2hu2.payment.dto.PaymentReadyResponse;
 
 import store.seub2hu2.payment.exception.PaymentValidationException;
+import store.seub2hu2.payment.strategy.PaymentProcessor;
 import store.seub2hu2.product.service.ProductService;
 
 import java.util.HashMap;
@@ -39,17 +40,9 @@ public class KakaoPayService {
     @Value("${kakaopay.partner-user-id}")
     private String partnerUserId;
 
-
+    private final List<PaymentProcessor> paymentProcessors;
 
     private final KakaoPayApiService kakaoPayApiService;
-
-    private final ProductService productService;
-
-    private final OrderService orderService;
-
-    private final CartService cartService;
-
-    private final DeliveryService deliveryService;
 
     // 카카오페이 결제 승인
     // 사용자가 결제 수단을 선택하고 비밀번호를 입력해 결제 인증을 완료한 뒤,
@@ -61,10 +54,9 @@ public class KakaoPayService {
         log.info("Pay ready dto = {}", paymentDto);
         Map<String, String> parameters = createBaseParameters(paymentDto);
         // 상품 결제
-        if (paymentDto.getType().equals(PAYMENT_TYPE_PRODUCT)) {
-            processProductPayment(paymentDto, parameters);
+        processPaymentByStrategy(paymentDto, parameters);
 
-        }
+
         parameters.put("tax_free_amount", TAX_FREE_AMOUNT);
         parameters.put("cancel_url", serverIp + CANCEL_URL_PATH);
         parameters.put("fail_url", serverIp + FAIL_URL_PATH);
@@ -74,46 +66,6 @@ public class KakaoPayService {
         return kakaoPayApiService.requestPaymentReady(parameters);
     }
 
-    /**
-     * 상품 결제 프로세스 처리
-     */
-    private void processProductPayment(PaymentDto paymentDto, Map<String, String> parameters) {
-        Order order = orderService.createOrder(paymentDto);
-        int orderNo = order.getNo();
-
-
-        parameters.put("partner_order_id", String.valueOf(orderNo));
-
-        // 주문 상품 정보를 저장한다.
-        List<OrderItem> orderItems = paymentDto.getOrderItems();
-
-        String itemName = productService.generateOrderItemName(orderItems);
-
-        // 재고 확인 및 업데이트
-        productService.validateAndUpdateStock(orderItems, orderNo, itemName);
-
-        // 장바구니에서 주문된 상품들 제거
-        cartService.removeOrderedItems(orderItems);
-
-
-        orderService.saveOrderItems(orderItems);
-
-        // 배송 정보 생성
-        deliveryService.createDeliveryInfo(paymentDto, orderNo);
-
-        // 결제준비
-        parameters.put("item_name", itemName);
-        parameters.put("item_code", String.valueOf(orderNo));
-        parameters.put("total_amount", String.valueOf(paymentDto.getFinalTotalPrice()));
-        parameters.put("approval_url", buildApprovalUrl(paymentDto.getType(), orderNo));
-    }
-
-    /**
-     * 승인 완료 URL 생성
-     */
-    private String buildApprovalUrl(String type, int orderNo) {
-        return serverIp + APPROVAL_URL_PATH + "?type=" + type + "&orderNo=" + orderNo;
-    }
 
     @NotNull
     private Map<String, String> createBaseParameters(PaymentDto paymentDto) {
@@ -160,7 +112,7 @@ public class KakaoPayService {
             throw new PaymentValidationException("결제 타입이 지정되지 않았습니다.");
         }
 
-        if (paymentDto.getQuantity() <= 0) {
+        if (paymentDto.getQuantity() <= 0) {  //
             throw new PaymentValidationException("주문 수량은 0보다 커야 합니다.");
         }
 
@@ -206,4 +158,19 @@ public class KakaoPayService {
             throw new PaymentValidationException("취소할 수량이 유효하지 않습니다.");
         }
     }
+
+    /**
+     * 결제 타입에 맞는 전략을 찾아서 실행
+     */
+    private void processPaymentByStrategy(PaymentDto paymentDto, Map<String, String> parameters) {
+        String paymentType = paymentDto.getType();
+
+        PaymentProcessor processor = paymentProcessors.stream()
+                .filter(p -> p.supports(paymentType))
+                .findFirst()
+                .orElseThrow(() -> new PaymentValidationException("지원하지 않는 결제 타입입니다: " + paymentType));
+
+        processor.processPayment(paymentDto, parameters);
+    }
+
 }
