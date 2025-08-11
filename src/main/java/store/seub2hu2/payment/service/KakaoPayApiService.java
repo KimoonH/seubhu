@@ -8,11 +8,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import store.seub2hu2.payment.constant.PaymentConstants;
 import store.seub2hu2.payment.dto.ApproveResponse;
 import store.seub2hu2.payment.dto.CancelResponse;
 import store.seub2hu2.payment.dto.PaymentReadyResponse;
 
 import java.util.Map;
+
+import static store.seub2hu2.payment.constant.PaymentConstants.KakaoPay.*;
+import static store.seub2hu2.payment.constant.PaymentConstants.TAX_FREE_AMOUNT;
 
 @Slf4j
 @Service
@@ -62,14 +66,14 @@ public class KakaoPayApiService {
     public ApproveResponse requestPaymentApprove(String tid, String pgToken, String partnerOrderId) {
         try {
             Map<String, String> parameters = Map.of(
-                    "cid", cid,
-                    "tid", tid,
-                    "partner_order_id", partnerOrderId,
-                    "partner_user_id", partnerUserId,
-                    "pg_token", pgToken
+                    PARAM_CID, cid,
+                    PARAM_TID, tid,
+                    PARAM_PARTNER_ORDER_ID, partnerOrderId,
+                    PARAM_PARTNER_USER_ID, partnerUserId,
+                    PARAM_PG_TOKEN, pgToken
             );
 
-            log.info("=== 결제승인 partner_order_id: {}", parameters.get("partner_order_id"));
+            log.info("=== 결제승인 partner_order_id: {}", parameters.get(PARAM_PARTNER_ORDER_ID));
 
             HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(parameters, getHeaders());
 
@@ -90,11 +94,11 @@ public class KakaoPayApiService {
     public CancelResponse requestPaymentCancel(String tid, String cancelAmount, String quantity) {
         try {
             Map<String, String> parameters = Map.of(
-                    "cid", cid,
-                    "tid", tid,
-                    "cancel_amount", cancelAmount,
-                    "cancel_tax_free_amount", "0",
-                    "quantity", quantity
+                    PARAM_CID, cid,
+                    PARAM_TID, tid,
+                    PARAM_CANCEL_AMOUNT, cancelAmount,
+                    PARAM_CANCEL_TAX_FREE_AMOUNT, TAX_FREE_AMOUNT,
+                    PARAM_QUANTITY, quantity
             );
 
             HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(parameters, getHeaders());
@@ -115,8 +119,8 @@ public class KakaoPayApiService {
     // 카카오페이 API 헤더 생성
     private HttpHeaders getHeaders() {
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "SECRET_KEY " + secretKey);
-        headers.set("Content-type", "application/json");
+        headers.set(AUTHORIZATION_HEADER, AUTHORIZATION_PREFIX + secretKey);
+        headers.set(CONTENT_TYPE_HEADER, CONTENT_TYPE_JSON);
         return headers;
     }
 }

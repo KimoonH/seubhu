@@ -6,25 +6,19 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import store.seub2hu2.delivery.service.DeliveryService;
-import store.seub2hu2.mypage.service.CartService;
-import store.seub2hu2.order.service.OrderService;
-import store.seub2hu2.order.vo.Order;
-import store.seub2hu2.order.vo.OrderItem;
+import store.seub2hu2.payment.constant.PaymentConstants;
 import store.seub2hu2.payment.dto.PaymentDto;
 import store.seub2hu2.payment.dto.ApproveResponse;
 import store.seub2hu2.payment.dto.CancelResponse;
 import store.seub2hu2.payment.dto.PaymentReadyResponse;
-
 import store.seub2hu2.payment.exception.PaymentValidationException;
 import store.seub2hu2.payment.strategy.PaymentProcessor;
-import store.seub2hu2.product.service.ProductService;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static store.seub2hu2.payment.constant.PaymentConstants.*;
+import static store.seub2hu2.payment.constant.PaymentConstants.KakaoPay.*;
 
 @Slf4j
 @Service
@@ -57,9 +51,9 @@ public class KakaoPayService {
         processPaymentByStrategy(paymentDto, parameters);
 
 
-        parameters.put("tax_free_amount", TAX_FREE_AMOUNT);
-        parameters.put("cancel_url", serverIp + CANCEL_URL_PATH);
-        parameters.put("fail_url", serverIp + FAIL_URL_PATH);
+        parameters.put(PARAM_TAX_FREE_AMOUNT, TAX_FREE_AMOUNT);
+        parameters.put(PARAM_CANCEL_URL, serverIp + CANCEL_URL_PATH);
+        parameters.put(PARAM_FAIL_URL, serverIp + FAIL_URL_PATH);
 
 
         log.info("=== 결제준비 partner_order_id: {}", parameters.get("partner_order_id"));
@@ -70,9 +64,9 @@ public class KakaoPayService {
     @NotNull
     private Map<String, String> createBaseParameters(PaymentDto paymentDto) {
         Map<String, String> parameters = new HashMap<>();
-        parameters.put("cid", cid);
-        parameters.put("partner_user_id", partnerUserId);
-        parameters.put("quantity", String.valueOf(paymentDto.getQuantity()));
+        parameters.put(PARAM_CID, cid);
+        parameters.put(PARAM_PARTNER_USER_ID, partnerUserId);
+        parameters.put(PARAM_QUANTITY, String.valueOf(paymentDto.getQuantity()));
         return parameters;
     }
 
