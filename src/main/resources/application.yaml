@@ -103,13 +103,12 @@ project:
 
 # ????? ??
 kakaopay:
-  secretKey: DEVEBA187CAA55ABE3A31A58BBF15D24A49AE62B
+  secret-key: DEVEBA187CAA55ABE3A31A58BBF15D24A49AE62B
   cid: TC0ONETIME
   partner-user-id: seub2hu2
-  api:
-    ready-url: https://open-api.kakaopay.com/online/v1/payment/ready
-    approve-url: https://open-api.kakaopay.com/online/v1/payment/approve
-    cancel-url: https://open-api.kakaopay.com/online/v1/payment/cancel
+  ready-url: https://open-api.kakaopay.com/online/v1/payment/ready
+  approve-url: https://open-api.kakaopay.com/online/v1/payment/approve
+  cancel-url: https://open-api.kakaopay.com/online/v1/payment/cancel
 
 # ??? ??
 mail:

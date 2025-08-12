@@ -3,10 +3,10 @@ package store.seub2hu2.payment.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import store.seub2hu2.payment.constant.PaymentConstants;
+import store.seub2hu2.payment.config.KakaoPayProperties;
+import store.seub2hu2.payment.config.ServerProperties;
 import store.seub2hu2.payment.dto.PaymentDto;
 import store.seub2hu2.payment.dto.ApproveResponse;
 import store.seub2hu2.payment.dto.CancelResponse;
@@ -25,17 +25,10 @@ import static store.seub2hu2.payment.constant.PaymentConstants.KakaoPay.*;
 @RequiredArgsConstructor
 public class KakaoPayService {
 
-    @Value("${server.ip}")
-    private String serverIp;
 
-    @Value("${kakaopay.cid}")
-    private String cid;
-
-    @Value("${kakaopay.partner-user-id}")
-    private String partnerUserId;
-
+    private final KakaoPayProperties kakaoPayProperties;
+    private final ServerProperties serverProperties;
     private final List<PaymentProcessor> paymentProcessors;
-
     private final KakaoPayApiService kakaoPayApiService;
 
     // 카카오페이 결제 승인
@@ -52,11 +45,11 @@ public class KakaoPayService {
 
 
         parameters.put(PARAM_TAX_FREE_AMOUNT, TAX_FREE_AMOUNT);
-        parameters.put(PARAM_CANCEL_URL, serverIp + CANCEL_URL_PATH);
-        parameters.put(PARAM_FAIL_URL, serverIp + FAIL_URL_PATH);
+        parameters.put(PARAM_CANCEL_URL, serverProperties.getIp() + CANCEL_URL_PATH);
+        parameters.put(PARAM_FAIL_URL, serverProperties.getIp() + FAIL_URL_PATH);
 
 
-        log.info("=== 결제준비 partner_order_id: {}", parameters.get("partner_order_id"));
+        log.info("=== 결제준비 partner_order_id: {}", parameters.get(PARAM_PARTNER_ORDER_ID));
         return kakaoPayApiService.requestPaymentReady(parameters);
     }
 
@@ -64,8 +57,8 @@ public class KakaoPayService {
     @NotNull
     private Map<String, String> createBaseParameters(PaymentDto paymentDto) {
         Map<String, String> parameters = new HashMap<>();
-        parameters.put(PARAM_CID, cid);
-        parameters.put(PARAM_PARTNER_USER_ID, partnerUserId);
+        parameters.put(PARAM_CID, kakaoPayProperties.getCid());
+        parameters.put(PARAM_PARTNER_USER_ID, kakaoPayProperties.getPartnerUserId());
         parameters.put(PARAM_QUANTITY, String.valueOf(paymentDto.getQuantity()));
         return parameters;
     }

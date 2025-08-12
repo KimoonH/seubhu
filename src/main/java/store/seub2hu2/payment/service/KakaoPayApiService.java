@@ -1,13 +1,13 @@
 package store.seub2hu2.payment.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.*;
-import store.seub2hu2.payment.constant.PaymentConstants;
+import store.seub2hu2.payment.config.KakaoPayProperties;
 import store.seub2hu2.payment.dto.ApproveResponse;
 import store.seub2hu2.payment.dto.CancelResponse;
 import store.seub2hu2.payment.dto.PaymentReadyResponse;
@@ -24,28 +24,10 @@ import static store.seub2hu2.payment.constant.PaymentConstants.TAX_FREE_AMOUNT;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class KakaoPayApiService {
 
-    @Value("${kakaopay.secretKey}")
-    private String secretKey;
-
-    @Value("${kakaopay.cid}")
-    private String cid;
-
-    @Value("${kakaopay.partner-user-id}")
-    private String partnerUserId;
-
-    // 3단계: API URL들 외부화
-    @Value("${kakaopay.api.ready-url}")
-    private String readyUrl;
-
-    @Value("${kakaopay.api.approve-url}")
-    private String approveUrl;
-
-    @Value("${kakaopay.api.cancel-url}")
-    private String cancelUrl;
-
-    // 2단계: RestTemplate 재사용
+    private final KakaoPayProperties kakaoPayProperties;
     private final RestTemplate restTemplate = new RestTemplate();
 
     // 카카오페이 결제 준비 API 호출
@@ -53,7 +35,10 @@ public class KakaoPayApiService {
         try {
             HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(parameters, getHeaders());
 
-            ResponseEntity<PaymentReadyResponse> responseEntity = restTemplate.postForEntity(readyUrl, requestEntity, PaymentReadyResponse.class);
+            ResponseEntity<PaymentReadyResponse> responseEntity = restTemplate.postForEntity(
+                    kakaoPayProperties.getReadyUrl()
+                    , requestEntity
+                    , PaymentReadyResponse.class);
             log.info("결제준비 응답객체: {}", responseEntity.getBody());
 
             return responseEntity.getBody();
@@ -87,10 +72,10 @@ public class KakaoPayApiService {
     public ApproveResponse requestPaymentApprove(String tid, String pgToken, String partnerOrderId) {
         try {
             Map<String, String> parameters = Map.of(
-                    PARAM_CID, cid,
+                    PARAM_CID, kakaoPayProperties.getCid(),
                     PARAM_TID, tid,
                     PARAM_PARTNER_ORDER_ID, partnerOrderId,
-                    PARAM_PARTNER_USER_ID, partnerUserId,
+                    PARAM_PARTNER_USER_ID, kakaoPayProperties.getPartnerUserId(),
                     PARAM_PG_TOKEN, pgToken
             );
 
@@ -98,7 +83,10 @@ public class KakaoPayApiService {
 
             HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(parameters, getHeaders());
 
-            ApproveResponse approveResponse = restTemplate.postForObject(approveUrl, requestEntity, ApproveResponse.class);
+            ApproveResponse approveResponse = restTemplate.postForObject(
+                    kakaoPayProperties.getApproveUrl()
+                    , requestEntity
+                    , ApproveResponse.class);
             log.info("결제승인 응답객체: {}", approveResponse);
 
             return approveResponse;
@@ -135,7 +123,7 @@ public class KakaoPayApiService {
     public CancelResponse requestPaymentCancel(String tid, String cancelAmount, String quantity) {
         try {
             Map<String, String> parameters = Map.of(
-                    PARAM_CID, cid,
+                    PARAM_CID, kakaoPayProperties.getCid(),
                     PARAM_TID, tid,
                     PARAM_CANCEL_AMOUNT, cancelAmount,
                     PARAM_CANCEL_TAX_FREE_AMOUNT, TAX_FREE_AMOUNT,
@@ -144,7 +132,10 @@ public class KakaoPayApiService {
 
             HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(parameters, getHeaders());
 
-            CancelResponse cancelResponse = restTemplate.postForObject(cancelUrl, requestEntity, CancelResponse.class);
+            CancelResponse cancelResponse = restTemplate.postForObject(
+                    kakaoPayProperties.getCancelUrl()
+                    , requestEntity
+                    , CancelResponse.class);
             log.info("결제취소 응답객체: {}", cancelResponse);
 
             return cancelResponse;
@@ -180,7 +171,7 @@ public class KakaoPayApiService {
     // 카카오페이 API 헤더 생성
     private HttpHeaders getHeaders() {
         HttpHeaders headers = new HttpHeaders();
-        headers.set(AUTHORIZATION_HEADER, AUTHORIZATION_PREFIX + secretKey);
+        headers.set(AUTHORIZATION_HEADER, AUTHORIZATION_PREFIX + kakaoPayProperties.getSecretKey());
         headers.set(CONTENT_TYPE_HEADER, CONTENT_TYPE_JSON);
         return headers;
     }
