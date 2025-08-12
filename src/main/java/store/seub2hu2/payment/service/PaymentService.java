@@ -10,11 +10,16 @@ import store.seub2hu2.order.service.OrderService;
 import store.seub2hu2.payment.dto.ApproveResponse;
 import store.seub2hu2.payment.dto.CancelResponse;
 import store.seub2hu2.payment.dto.PaymentDto;
+import store.seub2hu2.payment.enums.PaymentMethod;
+import store.seub2hu2.payment.enums.PaymentStatus;
+import store.seub2hu2.payment.enums.PaymentType;
 import store.seub2hu2.payment.exception.PaymentProcessingException;
 import store.seub2hu2.payment.mapper.PayMapper;
 import store.seub2hu2.payment.vo.Payment;
 import store.seub2hu2.security.user.LoginUser;
 import store.seub2hu2.util.SessionUtils;
+
+import java.util.Date;
 
 @Service
 @RequiredArgsConstructor
@@ -43,17 +48,16 @@ public class PaymentService {
      * Payment 객체 생성
      */
     public Payment createPayment(String tid, String userId, ApproveResponse approveResponse) {
-        Payment payment = new Payment();
-        payment.setId(tid);
-        payment.setUserId(userId);
-        payment.setStatus("결제완료");
-        payment.setType("상품");
-        payment.setMethod("카카오페이");
-        payment.setAmount(1);
-        payment.setPrice(approveResponse.getAmount().getTotal());
-
-        log.info("Payment 객체 생성 - tid: {}, amount: {}", tid, approveResponse.getAmount().getTotal());
-        return payment;
+        return Payment.builder()
+                .id(tid)
+                .userId(userId)
+                .price(approveResponse.getAmount().getTotal())
+                .amount(1)
+                .method(PaymentMethod.KAKAO_PAY.getValue())
+                .type(PaymentType.PRODUCT.getValue())
+                .status(PaymentStatus.COMPLETED.getValue())
+                .payCreatedDate(new Date())
+                .build();
     }
 
     /**
@@ -61,7 +65,7 @@ public class PaymentService {
      */
     @Transactional
     public int processPaymentComplete(String tid, String pgToken, int orderNo, String userId) {
-        log.info("🔄 결제 완료 처리 시작 - tid: {}, orderNo: {}, userId: {}", tid, orderNo, userId);
+        log.info(" 결제 완료 처리 시작 - tid: {}, orderNo: {}, userId: {}", tid, orderNo, userId);
 
         try {
             // 1단계: 카카오페이 결제 승인
@@ -70,18 +74,18 @@ public class PaymentService {
             int payNo = savePaymentInfo(tid, userId, approveResponse);
             // 3단계: 주문과 결제 연결
             linkOrderWithPayment(orderNo, payNo);
-            log.info("✅ 결제 완료 처리 성공 - orderNo: {}, payNo: {}, amount: {}",
+            log.info(" 결제 완료 처리 성공 - orderNo: {}, payNo: {}, amount: {}",
                     orderNo, payNo, approveResponse.getAmount().getTotal());
             return payNo;
         } catch (Exception e) {
-            // 🚨 결제 데이터 불일치 가능성 - 수동 확인 필요
-            log.error("💥 결제 완료 처리 실패 - 데이터 불일치 가능성");
-            log.error("📋 수동 확인 정보:");
+            //  결제 데이터 불일치 가능성 - 수동 확인 필요
+            log.error(" 결제 완료 처리 실패 - 데이터 불일치 가능성");
+            log.error(" 수동 확인 정보:");
             log.error("   - TID: {}", tid);
             log.error("   - 주문번호: {}", orderNo);
             log.error("   - 사용자ID: {}", userId);
             log.error("   - 오류: {}", e.getMessage());
-            log.error("⚠️  카카오페이에서 결제가 승인되었을 수 있으니 수동 확인 필요!");
+            log.error(" 카카오페이에서 결제가 승인되었을 수 있으니 수동 확인 필요!");
 
             // TODO: 실제 운영에서는 알림 발송
             // alertService.sendPaymentInconsistencyAlert(tid, orderNo, userId, e);
@@ -94,7 +98,7 @@ public class PaymentService {
      * 1단계: 카카오페이 결제 승인 처리
      */
     private ApproveResponse processPaymentApproval(String tid, String pgToken, int orderNo) {
-        log.info("💳 결제 승인 요청 - tid: {}, orderNo: {}", tid, orderNo);
+        log.info("결제 승인 요청 - tid: {}, orderNo: {}", tid, orderNo);
 
         try {
             ApproveResponse approveResponse = kakaoPayService.payApprove(tid, pgToken, orderNo);
@@ -103,11 +107,11 @@ public class PaymentService {
                 throw new PaymentProcessingException("결제 승인 응답이 올바르지 않습니다.");
             }
 
-            log.info("✅ 결제 승인 완료 - tid: {}, amount: {}", tid, approveResponse.getAmount().getTotal());
+            log.info(" 결제 승인 완료 - tid: {}, amount: {}", tid, approveResponse.getAmount().getTotal());
             return approveResponse;
 
         } catch (Exception e) {
-            log.error("❌ 결제 승인 실패 - tid: {}, orderNo: {}", tid, orderNo, e);
+            log.error(" 결제 승인 실패 - tid: {}, orderNo: {}", tid, orderNo, e);
             throw new PaymentProcessingException("카카오페이 결제 승인에 실패했습니다.", e);
         }
     }
@@ -116,7 +120,7 @@ public class PaymentService {
      * 2단계: 결제 정보 DB 저장
      */
     private int savePaymentInfo(String tid, String userId, ApproveResponse approveResponse) {
-        log.info("💾 결제 정보 저장 시작 - tid: {}, userId: {}", tid, userId);
+        log.info(" 결제 정보 저장 시작 - tid: {}, userId: {}", tid, userId);
 
         try {
             Payment payment = createPayment(tid, userId, approveResponse);
@@ -127,11 +131,11 @@ public class PaymentService {
                 throw new PaymentProcessingException("결제 정보 저장 후 ID 생성 실패");
             }
 
-            log.info("✅ 결제 정보 저장 완료 - payNo: {}", payNo);
+            log.info(" 결제 정보 저장 완료 - payNo: {}", payNo);
             return payNo;
 
         } catch (Exception e) {
-            log.error("❌ 결제 정보 저장 실패 - tid: {}", tid, e);
+            log.error(" 결제 정보 저장 실패 - tid: {}", tid, e);
             throw new PaymentProcessingException("결제 정보 저장 중 오류가 발생했습니다.", e);
         }
     }
@@ -140,14 +144,14 @@ public class PaymentService {
      * 3단계: 주문과 결제 연결
      */
     private void linkOrderWithPayment(int orderNo, int payNo) {
-        log.info("🔗 주문-결제 연결 시작 - orderNo: {}, payNo: {}", orderNo, payNo);
+        log.info(" 주문-결제 연결 시작 - orderNo: {}, payNo: {}", orderNo, payNo);
 
         try {
             orderService.updateOrderPayNo(orderNo, payNo);
-            log.info("✅ 주문-결제 연결 완료 - orderNo: {}, payNo: {}", orderNo, payNo);
+            log.info(" 주문-결제 연결 완료 - orderNo: {}, payNo: {}", orderNo, payNo);
 
         } catch (Exception e) {
-            log.error("❌ 주문-결제 연결 실패 - orderNo: {}, payNo: {}", orderNo, payNo, e);
+            log.error(" 주문-결제 연결 실패 - orderNo: {}, payNo: {}", orderNo, payNo, e);
             throw new PaymentProcessingException("주문 정보 업데이트에 실패했습니다.", e);
         }
     }
@@ -195,9 +199,12 @@ public class PaymentService {
             kakaoPayService.payCancel(paymentDto, paymentId);
 
             // 결제 상태 업데이트
-            Payment payment = new Payment();
-            payment.setId(paymentId);
-            payment.setStatus("취소");
+            Payment payment = Payment.builder()
+                    .id(paymentId)
+                    .status(PaymentStatus.CANCELLED.getValue())
+                    .payUpdatedDate(new Date())  // 보너스: 업데이트 시간도 추가
+                    .build();
+
             payMapper.updateProductPayStatus(payment);
 
             log.info("상품 결제 취소 완료 - paymentId: {}", paymentId);

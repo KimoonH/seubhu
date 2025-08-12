@@ -1,6 +1,9 @@
 package store.seub2hu2.payment.vo;
 
 import lombok.*;
+import store.seub2hu2.payment.enums.PaymentMethod;
+import store.seub2hu2.payment.enums.PaymentStatus;
+import store.seub2hu2.payment.enums.PaymentType;
 
 import java.util.Date;
 
@@ -9,6 +12,7 @@ import java.util.Date;
 @Getter
 @Setter
 @ToString
+@Builder
 public class Payment {
     private int no;
     private String id;
