@@ -6,13 +6,17 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.*;
 import store.seub2hu2.payment.constant.PaymentConstants;
 import store.seub2hu2.payment.dto.ApproveResponse;
 import store.seub2hu2.payment.dto.CancelResponse;
 import store.seub2hu2.payment.dto.PaymentReadyResponse;
+import store.seub2hu2.payment.exception.KakaoPayApproveException;
+import store.seub2hu2.payment.exception.KakaoPayCancelException;
+import store.seub2hu2.payment.exception.KakaoPayReadyException;
+import store.seub2hu2.payment.exception.PaymentNetworkException;
 
+import java.net.SocketTimeoutException;
 import java.util.Map;
 
 import static store.seub2hu2.payment.constant.PaymentConstants.KakaoPay.*;
@@ -53,12 +57,29 @@ public class KakaoPayApiService {
             log.info("결제준비 응답객체: {}", responseEntity.getBody());
 
             return responseEntity.getBody();
+
+        } catch (HttpClientErrorException e) {
+            log.error("카카오페이 결제준비 클라이언트 오류 - 상태코드: {}, 응답: {}", e.getStatusCode(), e.getResponseBodyAsString());
+            throw new KakaoPayReadyException("결제 정보가 올바르지 않습니다. 다시 확인해주세요.", e);
+
+        } catch (HttpServerErrorException e) {
+            log.error("카카오페이 결제준비 서버 오류 - 상태코드: {}", e.getStatusCode());
+            throw new KakaoPayReadyException("카카오페이 서비스가 일시적으로 불안정합니다. 잠시 후 다시 시도해주세요.", e);
+
+        } catch (ResourceAccessException e) {
+            log.error("카카오페이 결제준비 네트워크 오류: {}", e.getMessage());
+            if (e.getCause() instanceof SocketTimeoutException) {
+                throw new PaymentNetworkException("네트워크 연결이 불안정합니다. 잠시 후 다시 시도해주세요.", e);
+            }
+            throw new PaymentNetworkException("네트워크 연결에 문제가 발생했습니다. 인터넷 연결을 확인해주세요.", e);
+
         } catch (RestClientException e) {
             log.error("카카오페이 결제준비 API 호출 실패: {}", e.getMessage(), e);
-            throw new RuntimeException("결제 준비 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.", e);
+            throw new KakaoPayReadyException("결제 준비 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.", e);
+
         } catch (Exception e) {
             log.error("결제준비 중 예상치 못한 오류 발생: {}", e.getMessage(), e);
-            throw new RuntimeException("결제 준비 중 오류가 발생했습니다.", e);
+            throw new KakaoPayReadyException("결제 준비 중 오류가 발생했습니다.", e);
         }
     }
 
@@ -81,12 +102,32 @@ public class KakaoPayApiService {
             log.info("결제승인 응답객체: {}", approveResponse);
 
             return approveResponse;
+
+        } catch (HttpClientErrorException e) {
+            log.error("카카오페이 결제승인 클라이언트 오류 - 상태코드: {}, 응답: {}", e.getStatusCode(), e.getResponseBodyAsString());
+            if (e.getStatusCode().value() == 400) {
+                throw new KakaoPayApproveException("결제 승인 정보가 올바르지 않습니다. 다시 시도해주세요.", e);
+            }
+            throw new KakaoPayApproveException("결제 승인에 실패했습니다. 고객센터로 문의해주세요.", e);
+
+        } catch (HttpServerErrorException e) {
+            log.error("카카오페이 결제승인 서버 오류 - 상태코드: {}", e.getStatusCode());
+            throw new KakaoPayApproveException("카카오페이 서비스가 일시적으로 불안정합니다. 잠시 후 다시 시도해주세요.", e);
+
+        } catch (ResourceAccessException e) {
+            log.error("카카오페이 결제승인 네트워크 오류: {}", e.getMessage());
+            if (e.getCause() instanceof SocketTimeoutException) {
+                throw new PaymentNetworkException("네트워크 연결이 불안정합니다. 결제 상태를 확인해주세요.", e);
+            }
+            throw new PaymentNetworkException("네트워크 연결에 문제가 발생했습니다. 결제 상태를 확인해주세요.", e);
+
         } catch (RestClientException e) {
             log.error("카카오페이 결제승인 API 호출 실패: {}", e.getMessage(), e);
-            throw new RuntimeException("결제 승인 중 오류가 발생했습니다. 고객센터로 문의해주세요.", e);
+            throw new KakaoPayApproveException("결제 승인 중 오류가 발생했습니다. 고객센터로 문의해주세요.", e);
+
         } catch (Exception e) {
             log.error("결제승인 중 예상치 못한 오류 발생: {}", e.getMessage(), e);
-            throw new RuntimeException("결제 승인 중 오류가 발생했습니다.", e);
+            throw new KakaoPayApproveException("결제 승인 중 오류가 발생했습니다.", e);
         }
     }
 
@@ -107,12 +148,32 @@ public class KakaoPayApiService {
             log.info("결제취소 응답객체: {}", cancelResponse);
 
             return cancelResponse;
+
+        } catch (HttpClientErrorException e) {
+            log.error("카카오페이 결제취소 클라이언트 오류 - 상태코드: {}, 응답: {}", e.getStatusCode(), e.getResponseBodyAsString());
+            if (e.getStatusCode().value() == 400) {
+                throw new KakaoPayCancelException("취소할 수 없는 결제입니다. 결제 상태를 확인해주세요.", e);
+            }
+            throw new KakaoPayCancelException("결제 취소에 실패했습니다. 고객센터로 문의해주세요.", e);
+
+        } catch (HttpServerErrorException e) {
+            log.error("카카오페이 결제취소 서버 오류 - 상태코드: {}", e.getStatusCode());
+            throw new KakaoPayCancelException("카카오페이 서비스가 일시적으로 불안정합니다. 잠시 후 다시 시도해주세요.", e);
+
+        } catch (ResourceAccessException e) {
+            log.error("카카오페이 결제취소 네트워크 오류: {}", e.getMessage());
+            if (e.getCause() instanceof SocketTimeoutException) {
+                throw new PaymentNetworkException("네트워크 연결이 불안정합니다. 취소 상태를 확인해주세요.", e);
+            }
+            throw new PaymentNetworkException("네트워크 연결에 문제가 발생했습니다. 취소 상태를 확인해주세요.", e);
+
         } catch (RestClientException e) {
             log.error("카카오페이 결제취소 API 호출 실패: {}", e.getMessage(), e);
-            throw new RuntimeException("결제 취소 중 오류가 발생했습니다. 고객센터로 문의해주세요.", e);
+            throw new KakaoPayCancelException("결제 취소 중 오류가 발생했습니다. 고객센터로 문의해주세요.", e);
+
         } catch (Exception e) {
             log.error("결제취소 중 예상치 못한 오류 발생: {}", e.getMessage(), e);
-            throw new RuntimeException("결제 취소 중 오류가 발생했습니다.", e);
+            throw new KakaoPayCancelException("결제 취소 중 오류가 발생했습니다.", e);
         }
     }
 
