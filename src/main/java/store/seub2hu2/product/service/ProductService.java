@@ -10,6 +10,8 @@ import store.seub2hu2.order.exception.ProductNotFoundException;
 import store.seub2hu2.order.exception.StockInsufficientException;
 import store.seub2hu2.order.vo.OrderItem;
 import store.seub2hu2.product.dto.*;
+import store.seub2hu2.product.dto.condition.ProductSearchCondition;
+import store.seub2hu2.product.dto.request.ProductSearchRequest;
 import store.seub2hu2.product.mapper.ProductMapper;
 import store.seub2hu2.product.vo.Product;
 import store.seub2hu2.product.vo.Size;
@@ -81,33 +83,23 @@ public class ProductService {
         return prodDetailDto;
     }
 
-    /**
-     * 모든 상품정보 목록을 제공하는 서비스 메서드입니다.
-     * @param condition 조회조건이 포함된 MAP 객체입니다.
-     * @return 모든 상품 목록
-     */
-    public ListDto<ProdListDto> getProducts(Map<String, Object> condition) {
+
+    public ListDto<ProdListDto> getProducts(ProductSearchRequest request) {
 
         // 검색 조건에 맞는 전체 데이터 갯수를 조회하는 기능
-        int totalRows = productMapper.getTotalRows(condition);
+        int totalRows = productMapper.getTotalRows(request);
 
-        // Pagination 객체를 생성한다.
-        int page = (Integer) condition.get("page");
-        int rows = (Integer) condition.get("rows");
 
-        Pagination pagination = new Pagination(page, totalRows, rows);
+        Pagination pagination = new Pagination(request.getPage(), totalRows, request.getRows());
 
-        // 데이터 검색 범위를 조회해서 Map에 저장한다.
-        condition.put("begin", pagination.getBegin());
-        condition.put("end", pagination.getEnd());
+        ProductSearchCondition condition = ProductSearchCondition.from(request, pagination);
 
         // ProdListDto 타입의 데이터를 담는 ListDto 객체를 생성한다.
         // 상품 목록 ListDto(ProdListDto), 페이정처리 정보(Pagination)을 담는다.
         List<ProdListDto> products = productMapper.getProducts(condition);
-        System.out.println(products.toString());
-        ListDto<ProdListDto> dto = new ListDto<>(products, pagination);
+        log.debug("조회된 상품 수: {}", products.size());
 
-        return dto;
+        return new ListDto<>(products, pagination);
     }
 
     /**

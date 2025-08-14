@@ -476,7 +476,7 @@ public class AdminService {
 
         return condition;
     }
-
+/*
     public ListDto<ProdListDto> getStockProduct(Map<String, Object> condition) {
 
         // 검색 조건에 맞는 전체 데이터 갯수를 조회하는 기능
@@ -498,7 +498,7 @@ public class AdminService {
 
         return dto;
     }
-
+*/
     public ListDto<orderDeliveryDto> getOrderDelivery(Map<String, Object> condition) {
 
         int totalRows = adminMapper.getDeliveryTotalRows(condition);

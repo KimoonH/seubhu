@@ -729,7 +729,7 @@ public class AdminController {
 
         return "redirect:/admin/product-detail?no=" + no + "&colorNo=" + colorNo;
     }
-
+/*
     @GetMapping("/product-stock")
     public String getProductStock(@RequestParam(name = "topNo") int topNo,
                                   @RequestParam(name = "catNo", required = false, defaultValue = "0") int catNo,
@@ -763,7 +763,7 @@ public class AdminController {
 
         return "admin/product-stock";
     }
-
+*/
     @PostMapping("/product-stock")
     public String productStock(@RequestParam("Y") String Y,
                                @RequestParam("no") int no,
@@ -794,38 +794,38 @@ public class AdminController {
         return "redirect:/admin/product-stock?topNo=" + topNo;
     }
 
-    @GetMapping("/product")
-    public String list(@RequestParam(name= "topNo") int topNo,
-                       @RequestParam(name = "catNo", required = false, defaultValue = "0") int catNo,
-                       @RequestParam(name = "page", required = false, defaultValue = "1") int page,
-                       @RequestParam(name = "rows", required = false, defaultValue = "6") int rows,
-                       @RequestParam(name = "sort" , required = false, defaultValue = "date") String sort,
-                       @RequestParam(name = "opt", required = false) String opt,
-                       @RequestParam(name = "value", required = false) String value,
-                       Model model) {
-
-        Map<String, Object> condition = new HashMap<>();
-        condition.put("topNo", topNo);
-        if(catNo != 0) {
-            condition.put("catNo", catNo);
-        }
-
-        condition.put("page", page);
-        condition.put("rows", rows);
-        condition.put("sort", sort);
-        if(StringUtils.hasText(opt)) {
-            condition.put("opt", opt);
-            condition.put("value", value);
-        }
-
-        ListDto<ProdListDto> dto = adminService.getStockProduct(condition);
-        model.addAttribute("topNo", topNo);
-        model.addAttribute("catNo", catNo);
-        model.addAttribute("products", dto.getData());
-        model.addAttribute("paging", dto.getPaging());
-
-        return "admin/productlist";
-    }
+//    @GetMapping("/product")
+//    public String list(@RequestParam(name= "topNo") int topNo,
+//                       @RequestParam(name = "catNo", required = false, defaultValue = "0") int catNo,
+//                       @RequestParam(name = "page", required = false, defaultValue = "1") int page,
+//                       @RequestParam(name = "rows", required = false, defaultValue = "6") int rows,
+//                       @RequestParam(name = "sort" , required = false, defaultValue = "date") String sort,
+//                       @RequestParam(name = "opt", required = false) String opt,
+//                       @RequestParam(name = "value", required = false) String value,
+//                       Model model) {
+//
+//        Map<String, Object> condition = new HashMap<>();
+//        condition.put("topNo", topNo);
+//        if(catNo != 0) {
+//            condition.put("catNo", catNo);
+//        }
+//
+//        condition.put("page", page);
+//        condition.put("rows", rows);
+//        condition.put("sort", sort);
+//        if(StringUtils.hasText(opt)) {
+//            condition.put("opt", opt);
+//            condition.put("value", value);
+//        }
+//
+//        ListDto<ProdListDto> dto = adminService.getStockProduct(condition);
+//        model.addAttribute("topNo", topNo);
+//        model.addAttribute("catNo", catNo);
+//        model.addAttribute("products", dto.getData());
+//        model.addAttribute("paging", dto.getPaging());
+//
+//        return "admin/productlist";
+//    }
 
     @PostMapping("/updateDeliveryStatus")
     public String updateDeliveryStatus(@RequestParam(name="page", required = false,defaultValue ="1") int page,

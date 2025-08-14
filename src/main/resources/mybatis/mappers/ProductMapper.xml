@@ -27,35 +27,34 @@
     </update>
 
     <!--
-    int getTotalRows(@Param("condition") Map<String, Object> condition);
+        int getTotalRows(@Param("request") ProductSearchRequest request);
     -->
-
     <select id="getTotalRows" resultType="int">
-        select
-        count(*) as cnt
-        from
-        PRODUCTS P
-        <if test="condition.topNo != null and condition.topNo != ''">
-            JOIN PROD_CATEGORIES PC ON P.CAT_NO = PC.CAT_NO
+        SELECT COUNT(*) as cnt
+        FROM PRODUCTS P
+        JOIN PROD_CATEGORIES PC ON P.CAT_NO = PC.CAT_NO  <!-- 항상 JOIN으로 변경! -->
+        JOIN PROD_BRANDS PB ON P.BRAND_NO = PB.BRAND_NO   <!-- 브랜드 JOIN 추가! -->
+        WHERE P.PROD_DELETED = 'N'
+        AND P.ISSHOW = 'Y'
+        <if test="request.topNo != null and request.topNo != 0">  <!-- Integer이니까 0 체크 -->
+            AND PC.TOP_CAT_NO = #{request.topNo}
         </if>
-        <where>
-            <if test="condition != null">
-                <choose>
-                    <when test="condition.opt == 'name'">
-                        AND P.PROD_NAME LIKE '%' || #{condition.value} || '%'
-                    </when>
-                    <when test="condition.opt == 'minPrice'">
-                        AND P.PROD_PRICE >= #{condition.value}
-                    </when>
-                    <when test="condition.opt == 'maxPrice'">
-                        AND P.PROD_PRICE &lt;= #{condition.value}
-                    </when>
-                </choose>
-            </if>
-            <if test="condition.topNo != null and condition.topNo != ''">
-                AND PC.TOP_CAT_NO IN (#{condition.topNo})
-            </if>
-        </where>
+        <if test="request.hasCategoryFilter()">
+            AND PC.CAT_NO = #{request.catNo}
+        </if>
+        <if test="request.hasSearchCondition()">
+            <choose>
+                <when test="request.opt == 'name'">
+                    AND P.PROD_NAME LIKE CONCAT('%', #{request.value}, '%')
+                </when>
+                <when test="request.opt == 'minPrice'">
+                    AND P.PROD_PRICE >= #{request.value}
+                </when>
+                <when test="request.opt == 'maxPrice'">
+                    AND P.PROD_PRICE &lt;= #{request.value}
+                </when>
+            </choose>
+        </if>
     </select>
 
     <!--
@@ -64,57 +63,60 @@
     <select id="getProducts" resultType="store.seub2hu2.product.dto.ProdListDto">
         SELECT *
         FROM(
-            SELECT
-                <choose>
-                    <when test="condition.sort == 'date'">
-                        ROW_NUMBER() OVER(ORDER BY P.PROD_CREATED_AT DESC) AS RN
-                    </when>
-                    <when test="condition.sort == 'name'">
-                        ROW_NUMBER() OVER(ORDER BY P.PROD_NAME ASC) AS RN
-                    </when>
-                    <when test="condition.sort == 'price'">
-                        ROW_NUMBER() OVER(ORDER BY P.PROD_PRICE ASC) AS RN
-                    </when>
-                </choose>
-            , P.PROD_NO AS no,
-            P.PROD_NAME AS name,
-            P.PROD_PRICE AS price,
-            P.PROD_STATUS AS status,
-            P.PROD_COLOR_NUM AS colorNum,
-            P.PROD_CREATED_AT AS createdAt,
-            P.PROD_IMG_THUM AS imgThum,
-            PC.CAT_NO AS "category.no",
-            PC.CAT_NAME AS "category.name",
-            PB.BRAND_NAME AS "brand.name"
-            FROM PRODUCTS P
-                JOIN PROD_CATEGORIES PC ON P.CAT_NO = PC.CAT_NO
-                JOIN PROD_BRANDS PB ON P.BRAND_NO = PB.BRAND_NO
-            WHERE
-                P.PROD_DELETED = 'N'
-            AND
-                P.ISSHOW = 'Y'
-            <if test="condition != null">
-                <choose>
-                    <when test="condition.opt == 'name'">
-                        AND P.PROD_NAME LIKE CONCAT ('%', #{condition.value},'%')
-                    </when>
-                    <when test="condition.opt == 'minPrice'">
-                        AND P.PROD_PRICE >= #{condition.value}
-                    </when>
-                    <when test="condition.opt == 'maxPrice'">
-                        AND P.PROD_PRICE &lt;= #{condition.value}
-                    </when>
-                </choose>
-            </if>
-            <if test="condition.topNo != null and condition.topNo != ''">
-                AND PC.TOP_CAT_NO IN (#{condition.topNo})
-            </if>
-            <if test="condition.catNo != null and condition.catNo != ''">
-                AND PC.CAT_NO IN (#{condition.catNo})
-            </if>
-            ) AS subquery
+        SELECT
+        <choose>
+            <when test="condition.sort == 'date'">
+                ROW_NUMBER() OVER(ORDER BY P.PROD_CREATED_AT DESC) AS RN
+            </when>
+            <when test="condition.sort == 'name'">
+                ROW_NUMBER() OVER(ORDER BY P.PROD_NAME ASC) AS RN
+            </when>
+            <when test="condition.sort == 'price'">
+                ROW_NUMBER() OVER(ORDER BY P.PROD_PRICE ASC) AS RN
+            </when>
+            <otherwise>
+                ROW_NUMBER() OVER(ORDER BY P.PROD_CREATED_AT DESC) AS RN
+            </otherwise>
+        </choose>
+        , P.PROD_NO AS no,
+        P.PROD_NAME AS name,
+        P.PROD_PRICE AS price,
+        P.PROD_STATUS AS status,
+        P.PROD_COLOR_NUM AS colorNum,
+        P.PROD_CREATED_AT AS createdAt,
+        P.PROD_IMG_THUM AS imgThum,
+        PC.CAT_NO AS "category.no",
+        PC.CAT_NAME AS "category.name",
+        PB.BRAND_NAME AS "brand.name"
+        FROM PRODUCTS P
+        JOIN PROD_CATEGORIES PC ON P.CAT_NO = PC.CAT_NO
+        JOIN PROD_BRANDS PB ON P.BRAND_NO = PB.BRAND_NO
         WHERE
-            RN BETWEEN #{condition.begin} AND #{condition.end}
+        P.PROD_DELETED = 'N'
+        AND
+        P.ISSHOW = 'Y'
+        <if test="condition.topNo != null and condition.topNo != ''">
+            AND PC.TOP_CAT_NO = #{condition.topNo}
+        </if>
+        <if test="condition.hasCategoryFilter()">
+            AND PC.CAT_NO = #{condition.catNo}
+        </if>
+        <if test="condition.hasSearchCondition()">
+            <choose>
+                <when test="condition.opt == 'name'">
+                    AND P.PROD_NAME LIKE CONCAT('%', #{condition.value}, '%')
+                </when>
+                <when test="condition.opt == 'minPrice'">
+                    AND P.PROD_PRICE >= #{condition.value}
+                </when>
+                <when test="condition.opt == 'maxPrice'">
+                    AND P.PROD_PRICE &lt;= #{condition.value}
+                </when>
+            </choose>
+        </if>
+        ) AS subquery
+        WHERE
+        RN BETWEEN #{condition.begin} AND #{condition.end}
     </select>
 
     <!--

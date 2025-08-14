@@ -1,5 +1,6 @@
 package store.seub2hu2.product.controller;
 
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Response;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,9 +10,11 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import store.seub2hu2.course.service.ReviewService;
 import store.seub2hu2.product.dto.*;
+import store.seub2hu2.product.dto.request.ProductSearchRequest;
 import store.seub2hu2.product.mapper.ProdReviewMapper;
 import store.seub2hu2.product.service.ProdReviewService;
 import store.seub2hu2.product.service.ProductService;
@@ -44,32 +47,22 @@ public class ProductController {
 
     //  상품 전체 페이지 이동
     @GetMapping("/list")
-    public String list(@RequestParam(name= "topNo") int topNo,
-                       @RequestParam(name = "catNo", required = false, defaultValue = "0") int catNo,
-                       @RequestParam(name = "page", required = false, defaultValue = "1") int page,
-                       @RequestParam(name = "rows", required = false, defaultValue = "6") int rows,
-                       @RequestParam(name = "sort" , required = false, defaultValue = "date") String sort,
-                       @RequestParam(name = "opt", required = false) String opt,
-                       @RequestParam(name = "value", required = false) String value,
+    public String list(@Valid @ModelAttribute ProductSearchRequest request,
+                       BindingResult bindingResult,
                        Model model) {
 
-        Map<String, Object> condition = new HashMap<>();
-        condition.put("topNo", topNo);
-        if(catNo != 0) {
-            condition.put("catNo", catNo);
+        // 검증 실패시 처리 (나중에 개선 예정)
+        if (bindingResult.hasErrors()) {
+            log.error("상품 검색 요청 검증 실패: {}", bindingResult.getAllErrors());
+            // 임시로 기본 페이지로 이동 (추후 에러 페이지로 개선)
+            model.addAttribute("errorMessage", "잘못된 요청입니다.");
+            return "product/list";
         }
 
-        condition.put("page", page);
-        condition.put("rows", rows);
-        condition.put("sort", sort);
-        if(StringUtils.hasText(opt) && StringUtils.hasText(value)) {
-            condition.put("opt", opt);
-            condition.put("value", value);
-        }
 
-        ListDto<ProdListDto> dto = productService.getProducts(condition);
-        model.addAttribute("topNo", topNo);
-        model.addAttribute("catNo", catNo);
+        ListDto<ProdListDto> dto = productService.getProducts(request);
+        model.addAttribute("topNo", request.getTopNo());
+        model.addAttribute("catNo", request.getCatNo());
         model.addAttribute("products", dto.getData());
         model.addAttribute("paging", dto.getPaging());
 
