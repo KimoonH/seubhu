@@ -26,17 +26,37 @@
         WHERE PROD_NO = #{prodNo};
     </update>
 
+    <!-- 1. 공통 JOIN (모든 쿼리에서 동일하게 사용) -->
+    <sql id="productJoins">
+        JOIN PROD_CATEGORIES PC ON P.CAT_NO = PC.CAT_NO
+        JOIN PROD_BRANDS PB ON P.BRAND_NO = PB.BRAND_NO
+    </sql>
+
+    <!-- 2. 상품 목록 컬럼 (너무 길어서 분리) -->
+    <sql id="productListColumns">
+        P.PROD_NO AS no,
+        P.PROD_NAME AS name,
+        P.PROD_PRICE AS price,
+        P.PROD_STATUS AS status,
+        P.PROD_COLOR_NUM AS colorNum,
+        P.PROD_CREATED_AT AS createdAt,
+        P.PROD_IMG_THUM AS imgThum,
+        PC.CAT_NO AS "category.no",
+        PC.CAT_NAME AS "category.name",
+        PB.BRAND_NAME AS "brand.name"
+    </sql>
+
     <!--
         int getTotalRows(@Param("request") ProductSearchRequest request);
     -->
     <select id="getTotalRows" resultType="int">
         SELECT COUNT(*) as cnt
         FROM PRODUCTS P
-        JOIN PROD_CATEGORIES PC ON P.CAT_NO = PC.CAT_NO  <!-- 항상 JOIN으로 변경! -->
-        JOIN PROD_BRANDS PB ON P.BRAND_NO = PB.BRAND_NO   <!-- 브랜드 JOIN 추가! -->
-        WHERE P.PROD_DELETED = 'N'
+        <include refid="productJoins"/>
+        WHERE
+        P.PROD_DELETED = 'N'
         AND P.ISSHOW = 'Y'
-        <if test="request.topNo != null and request.topNo != 0">  <!-- Integer이니까 0 체크 -->
+        <if test="request.topNo != null and request.topNo != 0">
             AND PC.TOP_CAT_NO = #{request.topNo}
         </if>
         <if test="request.hasCategoryFilter()">
@@ -58,44 +78,33 @@
     </select>
 
     <!--
-        List<ProdListDto> getProducts();
+        List<ProdListDto> getProducts(@Param("condition") ProductSearchCondition condition);
     -->
     <select id="getProducts" resultType="store.seub2hu2.product.dto.ProdListDto">
         SELECT *
-        FROM(
+        FROM (
         SELECT
         <choose>
             <when test="condition.sort == 'date'">
-                ROW_NUMBER() OVER(ORDER BY P.PROD_CREATED_AT DESC) AS RN
+                ROW_NUMBER() OVER(ORDER BY P.PROD_CREATED_AT DESC) AS RN,
             </when>
             <when test="condition.sort == 'name'">
-                ROW_NUMBER() OVER(ORDER BY P.PROD_NAME ASC) AS RN
+                ROW_NUMBER() OVER(ORDER BY P.PROD_NAME ASC) AS RN,
             </when>
             <when test="condition.sort == 'price'">
-                ROW_NUMBER() OVER(ORDER BY P.PROD_PRICE ASC) AS RN
+                ROW_NUMBER() OVER(ORDER BY P.PROD_PRICE ASC) AS RN,
             </when>
             <otherwise>
-                ROW_NUMBER() OVER(ORDER BY P.PROD_CREATED_AT DESC) AS RN
+                ROW_NUMBER() OVER(ORDER BY P.PROD_CREATED_AT DESC) AS RN,
             </otherwise>
         </choose>
-        , P.PROD_NO AS no,
-        P.PROD_NAME AS name,
-        P.PROD_PRICE AS price,
-        P.PROD_STATUS AS status,
-        P.PROD_COLOR_NUM AS colorNum,
-        P.PROD_CREATED_AT AS createdAt,
-        P.PROD_IMG_THUM AS imgThum,
-        PC.CAT_NO AS "category.no",
-        PC.CAT_NAME AS "category.name",
-        PB.BRAND_NAME AS "brand.name"
+        <include refid="productListColumns"/>
         FROM PRODUCTS P
-        JOIN PROD_CATEGORIES PC ON P.CAT_NO = PC.CAT_NO
-        JOIN PROD_BRANDS PB ON P.BRAND_NO = PB.BRAND_NO
+        <include refid="productJoins"/>
         WHERE
         P.PROD_DELETED = 'N'
-        AND
-        P.ISSHOW = 'Y'
-        <if test="condition.topNo != null and condition.topNo != ''">
+        AND P.ISSHOW = 'Y'
+        <if test="condition.topNo != null and condition.topNo != 0">
             AND PC.TOP_CAT_NO = #{condition.topNo}
         </if>
         <if test="condition.hasCategoryFilter()">
@@ -115,8 +124,7 @@
             </choose>
         </if>
         ) AS subquery
-        WHERE
-        RN BETWEEN #{condition.begin} AND #{condition.end}
+        WHERE RN BETWEEN #{condition.begin} AND #{condition.end}
     </select>
 
     <!--

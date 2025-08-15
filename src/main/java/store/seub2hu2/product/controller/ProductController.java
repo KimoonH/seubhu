@@ -59,7 +59,6 @@ public class ProductController {
             return "product/list";
         }
 
-
         ListDto<ProdListDto> dto = productService.getProducts(request);
         model.addAttribute("topNo", request.getTopNo());
         model.addAttribute("catNo", request.getCatNo());

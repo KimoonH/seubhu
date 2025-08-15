@@ -86,9 +86,7 @@ public class ProductService {
 
     public ListDto<ProdListDto> getProducts(ProductSearchRequest request) {
 
-        // 검색 조건에 맞는 전체 데이터 갯수를 조회하는 기능
         int totalRows = productMapper.getTotalRows(request);
-
 
         Pagination pagination = new Pagination(request.getPage(), totalRows, request.getRows());
 

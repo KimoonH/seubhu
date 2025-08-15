@@ -14,8 +14,6 @@ import lombok.ToString;
 @ToString
 public class ProductSearchRequest {
 
-    @NotNull(message = "상위 카테고리는 필수입니다")
-    @Min(value = 1, message = "상위 카테고리는 1 이상이어야 합니다")
     private Integer topNo;
 
     private Integer catNo = 0;
@@ -23,7 +21,6 @@ public class ProductSearchRequest {
     @Min(value = 1, message = "페이지는 1 이상이어야 합니다")
     private Integer page = 1;
 
-    @Min(value = 1, message = "행 수는 1 이상이어야 합니다")
     private Integer rows = 6;
 
     private String sort = "date";

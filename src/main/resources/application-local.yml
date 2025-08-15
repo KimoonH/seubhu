@@ -5,39 +5,39 @@ spring:
   profiles:
     include: oauth
 
-  # ?????? ??
+  # 데이터베이스 설정
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/seub2hu2?serverTimezone=UTC&characterEncoding=UTF-8
+    url: jdbc:mysql://localhost:3306/shop_test?serverTimezone=UTC&characterEncoding=UTF-8
     username: hong
     password: zxcv1234
 
-  # MVC ??
+  # MVC 설정
   mvc:
     view:
       prefix: /WEB-INF/views/
       suffix: .jsp
 
-  # ?? ??? ??
+  # 파일 업로드 설정
   servlet:
     multipart:
       enabled: true
       max-file-size: 50MB
       max-request-size: 50MB
 
-  # ?? ??
+  # 세션 설정
   server:
     servlet:
       session:
         persistent: false
         timeout: 60m
 
-  # ?? ??
+  # 개발 도구
   devtools:
     livereload:
       enabled: true
 
-  # Redis ??
+  # Redis 설정
   data:
     redis:
       repositories:
@@ -45,14 +45,14 @@ spring:
       host: 127.0.0.1
       port: 6379
 
-# ?? ??
+# 서버 설정
 server:
   ip: http://localhost:8080
   error:
     whitelabel:
       enabled: false
 
-# ?? ??
+# 로깅 설정
 logging:
   level:
     root: info
@@ -68,7 +68,7 @@ logging:
   pattern:
     console: "[%d{yyyy-MM-dd HH:mm:ss}] %clr([%50logger{50}])  %msg%n"
 
-# MyBatis ??
+# MyBatis 설정
 mybatis:
   mapper-locations: mybatis/mappers/*.xml
   type-aliases-package: store.seub2hu2.vo
@@ -77,7 +77,7 @@ mybatis:
     log-impl: org.apache.ibatis.logging.log4j2.Log4j2Impl
     jdbc-type-for-null: NULL
 
-# ?? ??? ??
+# 파일 업로드 경로
 file:
   upload-dir: C:/files/board/
 
@@ -100,7 +100,7 @@ project:
   upload:
     path: resources/images/course
 
-# ????? ??
+# 카카오페이 설정
 kakaopay:
   secret-key: DEVEBA187CAA55ABE3A31A58BBF15D24A49AE62B
   cid: TC0ONETIME
@@ -109,7 +109,7 @@ kakaopay:
   approve-url: https://open-api.kakaopay.com/online/v1/payment/approve
   cancel-url: https://open-api.kakaopay.com/online/v1/payment/cancel
 
-# ??? ??
+# 이메일 설정
 mail:
   host: smtp.gmail.com
   port: 587
@@ -125,14 +125,14 @@ mail:
     timeout: 5000
     writetimeout: 5000
 
-# SMS ??
+# SMS 설정
 coolsms:
   api:
     key: NCSANPJPA5E7863L
     secret: 3LICB0G3ZRERCPZSP4NGXE87MDCK8JUA
     number: 01012345678
 
-# AWS ??
+# AWS 설정
 cloud:
   aws:
     credentials:
