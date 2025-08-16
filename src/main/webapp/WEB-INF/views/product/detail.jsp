@@ -55,7 +55,7 @@
                                     </colgroup>
                                     <tr>
                                         <th>상품 이름</th>
-                                        <td colspan="3">${prodDetailDto.name}</td>
+                                        <td colspan="3">${prodDetailDto.productName}</td>
                                     </tr>
                                     <tr>
                                         <th>상품 가격</th>
@@ -93,7 +93,7 @@
                                 <div class="mb-4">
                                     <c:forEach var="p" items="${colorProdImgDto}">
                                             <c:forEach var="im" items="${p.images}">
-                                                <a href="/product/hit?no=${p.product.no}&colorNo=${p.no}"><img src="${im.url}" width=15%/></a>
+                                                <a href="/product/hit?productNo=${p.product.no}&colorNo=${p.colorNo}"><img src="${im.url}" width=15%/></a>
                                             </c:forEach>
                                     </c:forEach>
                                 </div>
@@ -106,12 +106,12 @@
                                                     <div class="col">
                                                         <input type="radio" class="btn-check" name="size" id="size${size.size}" value="${size.size}" required
                                                         onchange="fn(this)"
-                                                        data-name="${prodDetailDto.name}"
+                                                        data-name="${prodDetailDto.productName}"
                                                         data-size="${size.size}"
                                                         data-size-no="${size.no}"
-                                                        data-color="${sizeAmountDto.name}"
-                                                        data-color-no="${sizeAmountDto.no}"
-                                                        data-no="${prodDetailDto.no}"
+                                                        data-color="${sizeAmountDto.colorName}"
+                                                        data-color-no="${sizeAmountDto.colorNo}"
+                                                        data-no="${prodDetailDto.productNo}"
                                                         >
                                                         <label class="${size.amount == 0 ? "btn btn-outline-danger fixed-size w-100 d-flex align-items-center justify-content-between disabled": "btn btn-outline-secondary fixed-size w-100 d-flex align-items-center justify-content-between"}" for="size${size.size}">
                                                             <span class="ms-2">${size.size}</span>
@@ -155,10 +155,10 @@
     <div class="comment-form mb-4">
         <h5 style="text-align: start; font-weight: bold;">리뷰 작성</h5>
         <form id="form-review"  method="post" action="addProdReview" enctype="multipart/form-data">
-            <input type="hidden" name="prodNo" value="${prodDetailDto.no}">
+            <input type="hidden" name="productNo" value="${prodDetailDto.productNo}">
             <input type="hidden" name="userNo" value="${user.no}">
             <input type="hidden" name="colorNo" value="${prodImagesDto.color.no}">
-            <input type="hidden" name="prodName" value="${prodDetailDto.name}"/>
+            <input type="hidden" name="prodName" value="${prodDetailDto.productName}"/>
             <input type="hidden" name="colorName" value="${prodImagesDto.color.name}">
             <input type="hidden" name="userNickname" value="${user.nickname}"/>
 
@@ -319,7 +319,7 @@
 </div>
 <script type="text/javascript">
     function fn(el) {
-        let prodNo = el.getAttribute("data-no"); // 상품 번호
+        let productNo = el.getAttribute("data-no"); // 상품 번호
         let size = el.getAttribute("data-size"); // 상품 사이즈
         let sizeNo = el.getAttribute("data-size-no"); // 상품 사이즈 번호
         let name = el.getAttribute("data-name"); // 상품명

@@ -15,7 +15,7 @@ import java.util.List;
 @Getter
 public class SizeAmountDto {
 
-    private int no; // 사이즈 번호
-    private String name; // 사이즈 명(?)
+    private int colorNo;        // 해당 색상의 번호 (이 색상에 속한 사이즈들이니까)
+    private String colorName;   // 해당 색상의 이름
     private List<Size> sizes; //사이즈별 사이즈
 }

@@ -68,37 +68,27 @@ public class ProductController {
         return "product/list";
     }
 
-    // 상품 상세 페이지 이동
     @GetMapping("/detail")
-    public String detail(@RequestParam("no") int no,
+    public String detail(@RequestParam("productNo") int productNo,
                          @RequestParam("colorNo") int colorNo,
                          @AuthenticationPrincipal LoginUser loginUser,
                          Model model) {
 
+        // 사용자 정보 처리
+        User user = (loginUser != null) ? userService.findbyUserId(loginUser.getId()) : null;
+        model.addAttribute("user", user);
 
-        // 로그인 상태 확인 후 처리
-        User user = null;
-        if (loginUser != null) {
-            user = userService.findbyUserId(loginUser.getId());
-            model.addAttribute("user", user); // 로그인된 사용자 정보
-        } else {
-            model.addAttribute("user", null); // 비회원인 경우 null 전달
-        }
+        // 🔥 단일 호출로 모든 상품 정보 조회 (2번 쿼리)
+        ProductDetailBundle bundle = productService.getProductDetailBundle(productNo, colorNo);
 
-        ProdDetailDto prodDetailDto = productService.getProductByNo(no);
-        model.addAttribute("prodDetailDto", prodDetailDto);
+        // JSP 호환성을 위해 기존 형태로 분리해서 전달
+        model.addAttribute("prodDetailDto", bundle.getProdDetailDto());
+        model.addAttribute("colorProdImgDto", bundle.getColorProdImgDto());
+        model.addAttribute("sizeAmountDto", bundle.getSizeAmountDto());
+        model.addAttribute("prodImagesDto", bundle.getProdImagesDto());
 
-        List<ColorProdImgDto> colorProdImgDto = productService.getProdImgByColorNo(no);
-        model.addAttribute("colorProdImgDto", colorProdImgDto);
-
-        SizeAmountDto sizeAmountDto = productService.getSizeAmountByColorNo(colorNo);
-        model.addAttribute("sizeAmountDto", sizeAmountDto);
-
-        ProdImagesDto prodImagesDto = productService.getProdImagesByColorNo(colorNo);
-        model.addAttribute("prodImagesDto", prodImagesDto);
-
-
-        List<ProdReviewDto> prodReviews = prodReviewService.getProdReviews(no);
+        // 리뷰는 별도 조회 (나중에 최적화 예정)
+        List<ProdReviewDto> prodReviews = prodReviewService.getProdReviews(productNo);         // 3번
         model.addAttribute("prodReviews", prodReviews);
 
         return "product/detail";

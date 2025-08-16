@@ -127,37 +127,150 @@
         WHERE RN BETWEEN #{condition.begin} AND #{condition.end}
     </select>
 
-    <!--
-         ProdDetailDto getProductByNo(int no);
-    -->
-    <select id="getProductByNo" resultType="store.seub2hu2.product.dto.ProdDetailDto">
+    <resultMap id="ProductWithColorsResultMap" type="store.seub2hu2.product.dto.ProductDetailBundle">
+        <!-- 상품 기본 정보 -->
+        <association property="product" javaType="store.seub2hu2.product.dto.ProdDetailDto">
+            <id property="productNo" column="product_no"/>
+            <result property="productName" column="product_name"/>
+            <result property="price" column="product_price"/>
+            <result property="content" column="product_content"/>
+            <result property="rating" column="product_rating"/>
+            <result property="cnt" column="product_cnt"/>
+
+            <association property="brand" javaType="store.seub2hu2.product.vo.Brand">
+                <id property="no" column="brand_no"/>
+                <result property="name" column="brand_name"/>
+            </association>
+
+            <association property="category" javaType="store.seub2hu2.product.vo.Category">
+                <id property="no" column="category_no"/>
+                <result property="name" column="category_name"/>
+            </association>
+        </association>
+
+        <!-- 색상 옵션들 -->
+        <collection property="colorOptions" ofType="store.seub2hu2.product.dto.ColorProdImgDto">
+            <!-- ✅ 1. id가 먼저 -->
+            <id property="colorNo" column="color_no"/>
+
+            <!-- ✅ 2. result가 다음 -->
+            <result property="colorName" column="color_name"/>
+
+            <!-- ✅ 3. association이 다음 -->
+            <association property="product" javaType="store.seub2hu2.product.vo.Product">
+                <id property="no" column="product_no"/>
+            </association>
+
+            <!-- ✅ 4. collection이 마지막 -->
+            <collection property="images" ofType="store.seub2hu2.product.vo.Image">
+                <result property="url" column="color_image_url"/>
+            </collection>
+        </collection>
+    </resultMap>
+
+
+    <!-- 1번째 쿼리: 상품 기본정보 + 모든 색상 옵션 -->
+    <select id="getProductWithAllColors" resultMap="ProductWithColorsResultMap">
         SELECT
-            P.PROD_NO AS no,
-            P.PROD_NAME AS name,
-            P.PROD_CONTENT AS content,
-            P.PROD_PRICE AS price,
-            P.PROD_STATUS AS status,
-            P.PROD_CNT AS cnt,
-            P.PROD_RATING AS rating,
-            PC.CAT_NAME AS "category.name",
-            PB.BRAND_NAME AS "brand.name"
-        FROM
-            PRODUCTS P
-        JOIN
-            PROD_CATEGORIES PC
-            ON P.CAT_NO = PC.CAT_NO
-        JOIN
-            PROD_BRANDS PB
-        ON P.BRAND_NO = PB.BRAND_NO
-        WHERE P.PROD_NO = #{no};
+        -- 상품 기본 정보
+        P.PROD_NO as product_no,
+        P.PROD_NAME as product_name,
+        P.PROD_PRICE as product_price,
+        P.PROD_CONTENT as product_content,
+        P.PROD_RATING as product_rating,
+        P.PROD_CNT as product_cnt,
+
+        -- 브랜드/카테고리 정보
+        PB.BRAND_NO as brand_no,
+        PB.BRAND_NAME as brand_name,
+        PC.CAT_NO as category_no,
+        PC.CAT_NAME as category_name,
+
+        -- 색상 옵션 정보
+        PCL.COLOR_NO as color_no,
+        PCL.COLOR_NAME as color_name,
+
+        -- 각 색상의 대표 이미지 (썸네일)
+        PI.IMG_URL as color_image_url
+
+        FROM PRODUCTS P
+        LEFT JOIN PROD_BRANDS PB ON P.BRAND_NO = PB.BRAND_NO
+        LEFT JOIN PROD_CATEGORIES PC ON P.CAT_NO = PC.CAT_NO
+        LEFT JOIN PROD_COLORS PCL ON P.PROD_NO = PCL.PROD_NO
+        LEFT JOIN PROD_IMGS PI ON PCL.COLOR_NO = PI.COLOR_NO AND PI.IMG_THUM = 'Y'
+        WHERE P.PROD_NO = #{productNo}
+        ORDER BY PCL.COLOR_NO
     </select>
+
+
+    <resultMap id="ColorDetailsResultMap" type="store.seub2hu2.product.dto.ColorDetailsDto">
+        <!-- 사이즈/재고 정보 -->
+        <association property="sizeAmount" javaType="store.seub2hu2.product.dto.SizeAmountDto">
+            <id property="colorNo" column="color_no"/>
+            <result property="colorName" column="color_name"/>
+
+            <collection property="sizes" ofType="store.seub2hu2.product.vo.Size">
+                <id property="no" column="size_no"/>
+                <result property="size" column="size_name"/>
+                <result property="amount" column="size_amount"/>
+            </collection>
+        </association>
+
+        <!-- 이미지 정보 -->
+        <association property="images" javaType="store.seub2hu2.product.dto.ProdImagesDto">
+            <id property="productNo" column="product_no"/>
+            <result property="productName" column="product_name"/>
+
+            <association property="color" javaType="store.seub2hu2.product.vo.Color">
+                <id property="no" column="color_no"/>
+                <result property="name" column="color_name"/>
+            </association>
+
+            <collection property="images" ofType="store.seub2hu2.product.vo.Image">
+                <id property="no" column="image_no"/>
+                <result property="url" column="image_url"/>
+                <result property="isThum" column="image_thum"/>
+            </collection>
+        </association>
+    </resultMap>
+
+    <!-- 2번째 쿼리: 특정 색상의 상세정보 -->
+    <select id="getColorDetails" resultMap="ColorDetailsResultMap">
+        SELECT
+        -- 상품 기본 정보
+        P.PROD_NO as product_no,
+        P.PROD_NAME as product_name,
+
+        -- 색상 기본 정보
+        PCL.COLOR_NO as color_no,
+        PCL.COLOR_NAME as color_name,
+
+        -- 사이즈/재고 정보
+        PS.SIZE_NO as size_no,
+        PS.PROD_SIZE as size_name,
+        PS.PROD_AMOUNT as size_amount,
+
+        -- 해당 색상의 모든 이미지들
+        PI.IMG_URL as image_url,
+        PI.IMG_NO as image_no,
+        PI.IMG_THUM as image_thum
+
+        FROM PROD_COLORS PCL
+        LEFT JOIN PRODUCTS P ON PCL.PROD_NO = P.PROD_NO
+        LEFT JOIN PROD_SIZES PS ON PCL.COLOR_NO = PS.COLOR_NO AND PS.DELETED_SIZE = 'N'
+        LEFT JOIN PROD_IMGS PI ON PCL.COLOR_NO = PI.COLOR_NO
+        WHERE PCL.COLOR_NO = #{colorNo}
+        ORDER BY PS.PROD_SIZE, PI.IMG_NO
+    </select>
+
+
 
     <!--
         List<ColorProdImgDto> getProdImgByColorNo(@Param("no") int no);
     -->
     <resultMap id="ColorImg" type="store.seub2hu2.product.dto.ColorProdImgDto">
-        <id property="no" column="COLOR_NO"/>
-        <result property="name" column="COLOR_NAME"/>
+        <id property="colorNo" column="COLOR_NO"/>
+        <result property="colorName" column="COLOR_NAME"/>
         <association property="product" javaType="store.seub2hu2.product.vo.Product">
             <id property="no" column="PROD_NO"/>
             <result property="name" column="PROD_NAME"/>
@@ -167,32 +280,27 @@
             <result property="url" column="IMG_URL"/>
         </collection>
     </resultMap>
-    <select id="getProdImgByColorNo" resultMap="ColorImg">
+    <select id="getProdImgByProductNo" resultMap="ColorImg">
         SELECT
-            PC.COLOR_NO,
-            PC.COLOR_NAME,
-            P.PROD_NO,
-            P.PROD_NAME,
-            PI.IMG_URL
-        FROM
-            PROD_COLORS PC
-        JOIN PRODUCTS P
-        ON
-            PC.PROD_NO = P.PROD_NO
-        JOIN
-            PROD_IMGS PI
-        ON
-            PC.COLOR_NO = PI.COLOR_NO
-        WHERE P.PROD_NO = #{no}
-          AND PI.IMG_THUM = 'Y'
+        PC.COLOR_NO,
+        PC.COLOR_NAME,
+        P.PROD_NO,
+        P.PROD_NAME,
+        PI.IMG_NO,        <!-- 추가 -->
+        PI.IMG_URL
+        FROM PROD_COLORS PC
+        JOIN PRODUCTS P ON PC.PROD_NO = P.PROD_NO
+        JOIN PROD_IMGS PI ON PC.COLOR_NO = PI.COLOR_NO
+        WHERE P.PROD_NO = #{productNo}
+        AND PI.IMG_THUM = 'Y'
     </select>
 
     <!--
         SizeAmountDto getSizeAmountByColorNo(@Param("colorNo") int colorNo);
     -->
     <resultMap id="sizeAmountMap" type="store.seub2hu2.product.dto.SizeAmountDto">
-        <id property="no" column="COLOR_NO"/>
-        <result property="name" column="COLOR_NAME"/>
+        <id property="colorNo" column="COLOR_NO"/>
+        <result property="colorName" column="COLOR_NAME"/>
         <collection property="sizes" ofType="store.seub2hu2.product.vo.Size">
             <id property="no" column="SIZE_NO"/>
             <result property="size" column="PROD_SIZE"/>
@@ -217,8 +325,8 @@
         ProdImagesDto getProdImagesByno(@Param("colorNo") int colorNo);
     -->
     <resultMap id="ImagesMap" type="store.seub2hu2.product.dto.ProdImagesDto">
-        <id property="no" column="PROD_NO"/>
-        <result property="name" column="PROD_NAME"/>
+        <id property="productNo" column="PROD_NO"/>
+        <result property="productName" column="PROD_NAME"/>
         <association property="color" javaType="store.seub2hu2.product.vo.Color">
             <id property="no" column="COLOR_NO"/>
         </association>
@@ -227,19 +335,44 @@
             <result property="url" column="IMG_URL"/>
         </collection>
     </resultMap>
+
     <select id="getProdImagesByColorNo" resultMap="ImagesMap">
         SELECT
-            P.PROD_NO,
-            P.PROD_NAME,
-            PC.COLOR_NO,
-            PI.IMG_NO,
-            PI.IMG_URL
+        P.PROD_NO,
+        P.PROD_NAME,
+        PC.COLOR_NO,
+        PI.IMG_NO,
+        PI.IMG_URL
         FROM PRODUCTS P
-        JOIN PROD_COLORS PC
-        ON P.PROD_NO = PC.PROD_NO
-        JOIN PROD_IMGS PI
-        ON PC.COLOR_NO = PI.COLOR_NO
-        WHERE PC.COLOR_NO = ${colorNo}
+        JOIN PROD_COLORS PC ON P.PROD_NO = PC.PROD_NO
+        JOIN PROD_IMGS PI ON PC.COLOR_NO = PI.COLOR_NO
+        WHERE PC.COLOR_NO = #{colorNo}
+    </select>
+
+
+    <!--
+     ProdDetailDto getProductByNo(int no);
+-->
+    <select id="getProduct" resultType="store.seub2hu2.product.dto.ProdDetailDto">
+        SELECT
+        P.PROD_NO AS productNo,           <!-- DTO 필드명에 맞춤 -->
+        P.PROD_NAME AS productName,       <!-- DTO 필드명에 맞춤 -->
+        P.PROD_CONTENT AS content,
+        P.PROD_PRICE AS price,
+        P.PROD_STATUS AS status,
+        P.PROD_CNT AS cnt,
+        P.PROD_RATING AS rating,
+        PC.CAT_NAME AS "category.name",
+        PB.BRAND_NAME AS "brand.name"
+        FROM
+        PRODUCTS P
+        JOIN
+        PROD_CATEGORIES PC
+        ON P.CAT_NO = PC.CAT_NO
+        JOIN
+        PROD_BRANDS PB
+        ON P.BRAND_NO = PB.BRAND_NO
+        WHERE P.PROD_NO = #{productNo};
     </select>
 
     <!--

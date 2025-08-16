@@ -132,7 +132,7 @@
             <c:forEach var="prod"  items="${products }">
                 <div class="col">
                     <div class="card h-100">
-                        <a class="text-decoration-none" href="/product/hit?no=${prod.no}&colorNo=${prod.colorNum}">
+                         <a class="text-decoration-none" href="/product/detail?productNo=${prod.no}&colorNo=${prod.colorNum}">
                             <img src="${prod.imgThum}" class="card-img-top" alt="...">
                         </a>
                         <div class="card-body">

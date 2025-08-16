@@ -34,17 +34,21 @@ public interface ProductMapper {
 
     // 상품 전체 목록 조회하기
     List<ProdListDto> getProducts(@Param("condition") ProductSearchCondition condition);
-    
-    // 상품 번호에 따른 상품 상세 정보 조회하기
-    ProdDetailDto getProductByNo(@Param("no") int no);
 
-    // 상품번호에 따른 색상과 이미지 조회하기
-    List<ColorProdImgDto> getProdImgByColorNo(@Param("no") int no);
 
-    // 색상번호에 따른 사이즈와 재고수량 조회하기
+    /**
+     * 상품 기본정보 + 모든 색상 옵션 조회 (1번째 통합 쿼리)
+     */
+    ProductDetailBundle getProductWithAllColors(int productNo);
+
+    /**
+     * 특정 색상의 상세정보 조회 (사이즈/재고 + 모든 이미지) (2번째 통합 쿼리)
+     */
+    ColorDetailsDto getColorDetails(int colorNo);
+
+    ProdDetailDto getProduct(@Param("productNo") int productNo);
+    List<ColorProdImgDto> getProdImgByProductNo(@Param("productNo") int productNo);  // 메서드명 변경
+    ProdImagesDto getProdImagesByColorNo(@Param("colorNo") int colorNo);            // 메서드명 변경
     SizeAmountDto getSizeAmountByColorNo(@Param("colorNo") int colorNo);
-
-    // 색상 번호에 따른 이미지들 조회하기
-    ProdImagesDto getProdImagesByColorNo(@Param("colorNo") int colorNo);
 
 }

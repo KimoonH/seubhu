@@ -1,5 +1,6 @@
 package store.seub2hu2.product.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -24,10 +25,11 @@ import java.util.Map;
 @Slf4j
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class ProductService {
 
-    @Autowired
-    ProductMapper productMapper;
+
+    private final ProductMapper productMapper;
 
     public void updateProdDetailViewCnt(int prodNo, int colorNo) {
          Product product = productMapper.getProductByProdNoAndColoNo(prodNo, colorNo);
@@ -36,54 +38,10 @@ public class ProductService {
     }
 
     /**
-     * 색상 번호에 따른 다양한 이미지 조회하기
-     * @param colorNo 색상 번호
-     * @return 해당 상품의 하나의 색상의 여러 이미지들 값
+     * 상품 전체 조회 API
+     * @param request
+     * @return
      */
-    public ProdImagesDto getProdImagesByColorNo(int colorNo) {
-
-        ProdImagesDto prodImagesDto = productMapper.getProdImagesByColorNo(colorNo);
-
-        return prodImagesDto;
-    }
-
-    /**
-     * 색상 번호에 따른 사이즈와 재고량 조회하기
-     * @param colorNo 색상 번호
-     * @return 사이즈와 재고수량
-     */
-    public SizeAmountDto getSizeAmountByColorNo(int colorNo) {
-
-        SizeAmountDto getSizeAmount = productMapper.getSizeAmountByColorNo(colorNo);
-
-        return getSizeAmount;
-    }
-
-    /**
-     * 상품 번호에 따른 다양한 색 그리고 여러 이미지 중 대표 이미지 조회하기
-     * @param no 상품 번호
-     * @return 다양한 색, 대표 이미지 하나
-     */
-    public List<ColorProdImgDto> getProdImgByColorNo(int no) {
-
-        List<ColorProdImgDto> colorImgByNo = productMapper.getProdImgByColorNo(no);
-
-        return colorImgByNo;
-    }
-
-    /**
-     * 개별 상품 정보 조회
-     * @param no 상품 번호
-     * @return 상품 상세 정보
-     */
-    public ProdDetailDto getProductByNo(int no) {
-
-        ProdDetailDto prodDetailDto = productMapper.getProductByNo(no);
-
-        return prodDetailDto;
-    }
-
-
     public ListDto<ProdListDto> getProducts(ProductSearchRequest request) {
 
         int totalRows = productMapper.getTotalRows(request);
@@ -100,6 +58,40 @@ public class ProductService {
         return new ListDto<>(products, pagination);
     }
 
+    public ProductDetailBundle getProductDetailBundle(int productNo, int colorNo) {
+
+        // 🔥 기존 XML에 있는 쿼리들 그대로 사용
+        ProdDetailDto product = productMapper.getProduct(productNo);  // ✅ 이미 있음
+
+        // 🔥 나머지는 일단 기존 Service 메서드들 복원
+        List<ColorProdImgDto> colorOptions = getProdImgByProductNo(productNo);  // 기존 Service 메서드
+        SizeAmountDto sizeAmount = getSizeAmountByColorNo(colorNo);             // 기존 Service 메서드
+        ProdImagesDto selectedImages = getImagesByColorNo(colorNo);             // 기존 Service 메서드
+
+        return new ProductDetailBundle(product, colorOptions, sizeAmount, selectedImages);
+    }
+
+    public List<ColorProdImgDto> getProdImgByProductNo(int productNo) {
+        return productMapper.getProdImgByProductNo(productNo);  // 기존 XML 사용
+    }
+
+    public SizeAmountDto getSizeAmountByColorNo(int colorNo) {
+        return productMapper.getSizeAmountByColorNo(colorNo);  // 기존 XML 사용
+    }
+
+    public ProdImagesDto getImagesByColorNo(int colorNo) {
+        return productMapper.getProdImagesByColorNo(colorNo);  // 기존 XML 사용
+    }
+
+    /**
+     * 개별 상품 정보 조회 (주문 등에서 사용)
+     * @param productNo 상품 번호
+     * @return 상품 상세 정보
+     */
+    public ProdDetailDto getProduct(int productNo) {
+        return productMapper.getProduct(productNo);
+    }
+
     /**
      * 주문 상품 목록으로부터 표시용 상품명을 생성합니다.
      * @param orderItems 주문 상품 목록
@@ -111,13 +103,13 @@ public class ProductService {
         }
 
         int prodNo = orderItems.get(0).getProdNo();
-        ProdDetailDto prodDetailDto = productMapper.getProductByNo(prodNo);
+        ProdDetailDto prodDetailDto = productMapper.getProduct(prodNo);
 
         if (prodDetailDto == null) {
             throw new ProductNotFoundException("상품 번호 " + prodNo + "에 대한 정보가 없습니다.");
         }
 
-        String itemName = prodDetailDto.getName();
+        String itemName = prodDetailDto.getProductName();
 
         if (orderItems.size() > 1) {
             itemName = itemName + " 외 " + (orderItems.size() - 1) + "개";

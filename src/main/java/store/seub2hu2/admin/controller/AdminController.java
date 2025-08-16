@@ -597,7 +597,7 @@ public class AdminController {
     public String getRegisterColor(@RequestParam("no") int no,
                                    Model model) {
 
-        ProdDetailDto prodDetailDto = productService.getProductByNo(no);
+        ProdDetailDto prodDetailDto = productService.getProduct(no);
         model.addAttribute("prodDetailDto", prodDetailDto);
 
         return "admin/product-color-register-form";
@@ -627,29 +627,29 @@ public class AdminController {
         return "redirect:/admin/register-color?no=" + condition.get("no") + "&colorNo=" + colorNo;
     }
 
-    @GetMapping("/product-detail")
-    public String productAdminDetail(@RequestParam("no") int no,
-                                     @RequestParam("colorNo") int colorNo,
-                                     Model model) {
-
-        ProdDetailDto prodDetailDto = productService.getProductByNo(no);
-        model.addAttribute("prodDetailDto", prodDetailDto);
-
-        List<ColorProdImgDto> colorProdImgDto = productService.getProdImgByColorNo(no);
-        model.addAttribute("colorProdImgDto", colorProdImgDto);
-
-        SizeAmountDto sizeAmountDto = productService.getSizeAmountByColorNo(colorNo);
-        model.addAttribute("sizeAmountDto", sizeAmountDto);
-
-        ProdImagesDto prodImagesDto = productService.getProdImagesByColorNo(colorNo);
-        model.addAttribute("prodImagesDto", prodImagesDto);
-
-        Color color = adminService.getColorNo(colorNo);
-
-        model.addAttribute("color", color);
-
-        return "admin/product-admin-detail";
-    }
+//    @GetMapping("/product-detail")
+//    public String productAdminDetail(@RequestParam("productNo") int productNo,
+//                                     @RequestParam("colorNo") int colorNo,
+//                                     Model model) {
+//
+//        ProdDetailDto prodDetailDto = productService.getProductByNo(productNo);
+//        model.addAttribute("prodDetailDto", prodDetailDto);
+//
+//        List<ColorProdImgDto> colorProdImgDto = productService.getProdImgByproductNo(productNo);
+//        model.addAttribute("colorProdImgDto", colorProdImgDto);
+//
+//        SizeAmountDto sizeAmountDto = productService.getSizeAmountByColorNo(colorNo);
+//        model.addAttribute("sizeAmountDto", sizeAmountDto);
+//
+//        ProdImagesDto prodImagesDto = productService.getProdImagesByColorNo(colorNo);
+//        model.addAttribute("prodImagesDto", prodImagesDto);
+//
+//        Color color = adminService.getColorNo(colorNo);
+//
+//        model.addAttribute("color", color);
+//
+//        return "admin/product-admin-detail";
+//    }
 
 
     @GetMapping("/product-register-form")
