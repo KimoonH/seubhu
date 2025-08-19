@@ -78,7 +78,6 @@ public class ProductController {
         User user = (loginUser != null) ? userService.findbyUserId(loginUser.getId()) : null;
         model.addAttribute("user", user);
 
-        // 🔥 단일 호출로 모든 상품 정보 조회 (2번 쿼리)
         ProductDetailBundle bundle = productService.getProductDetailBundle(productNo, colorNo);
 
         // JSP 호환성을 위해 기존 형태로 분리해서 전달

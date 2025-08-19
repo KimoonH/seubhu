@@ -128,9 +128,13 @@
     </select>
 
     <resultMap id="ProductWithColorsResultMap" type="store.seub2hu2.product.dto.ProductDetailBundle">
+        <!-- 🔥 최상위 ID를 상품번호로 설정 (MyBatis가 이걸로 그룹핑) -->
+        <id column="product_no" property="product.productNo"/>
+
         <!-- 상품 기본 정보 -->
         <association property="product" javaType="store.seub2hu2.product.dto.ProdDetailDto">
-            <id property="productNo" column="product_no"/>
+            <!-- 🔥 id 태그 제거 (이미 최상위에서 설정됨) -->
+            <result property="productNo" column="product_no"/>
             <result property="productName" column="product_name"/>
             <result property="price" column="product_price"/>
             <result property="content" column="product_content"/>
@@ -150,23 +154,20 @@
 
         <!-- 색상 옵션들 -->
         <collection property="colorOptions" ofType="store.seub2hu2.product.dto.ColorProdImgDto">
-            <!-- ✅ 1. id가 먼저 -->
             <id property="colorNo" column="color_no"/>
-
-            <!-- ✅ 2. result가 다음 -->
             <result property="colorName" column="color_name"/>
 
-            <!-- ✅ 3. association이 다음 -->
             <association property="product" javaType="store.seub2hu2.product.vo.Product">
                 <id property="no" column="product_no"/>
             </association>
 
-            <!-- ✅ 4. collection이 마지막 -->
             <collection property="images" ofType="store.seub2hu2.product.vo.Image">
+                <id property="no" column="image_no"/>
                 <result property="url" column="color_image_url"/>
             </collection>
         </collection>
     </resultMap>
+
 
 
     <!-- 1번째 쿼리: 상품 기본정보 + 모든 색상 옵션 -->
@@ -194,19 +195,23 @@
         PI.IMG_URL as color_image_url
 
         FROM PRODUCTS P
-        LEFT JOIN PROD_BRANDS PB ON P.BRAND_NO = PB.BRAND_NO
-        LEFT JOIN PROD_CATEGORIES PC ON P.CAT_NO = PC.CAT_NO
-        LEFT JOIN PROD_COLORS PCL ON P.PROD_NO = PCL.PROD_NO
-        LEFT JOIN PROD_IMGS PI ON PCL.COLOR_NO = PI.COLOR_NO AND PI.IMG_THUM = 'Y'
+        INNER JOIN PROD_BRANDS PB ON P.BRAND_NO = PB.BRAND_NO
+        INNER JOIN PROD_CATEGORIES PC ON P.CAT_NO = PC.CAT_NO
+        INNER JOIN PROD_COLORS PCL ON P.PROD_NO = PCL.PROD_NO
+        INNER JOIN PROD_IMGS PI ON PCL.COLOR_NO = PI.COLOR_NO AND PI.IMG_THUM = 'Y'
         WHERE P.PROD_NO = #{productNo}
         ORDER BY PCL.COLOR_NO
     </select>
 
 
     <resultMap id="ColorDetailsResultMap" type="store.seub2hu2.product.dto.ColorDetailsDto">
+        <!--  최상위 ID를 색상번호로 설정 (MyBatis가 이걸로 그룹핑) -->
+        <id column="color_no" property="sizeAmount.colorNo"/>
+
         <!-- 사이즈/재고 정보 -->
         <association property="sizeAmount" javaType="store.seub2hu2.product.dto.SizeAmountDto">
-            <id property="colorNo" column="color_no"/>
+            <!--  id 태그 제거 (이미 최상위에서 설정됨) -->
+            <result property="colorNo" column="color_no"/>
             <result property="colorName" column="color_name"/>
 
             <collection property="sizes" ofType="store.seub2hu2.product.vo.Size">
@@ -256,13 +261,11 @@
         PI.IMG_THUM as image_thum
 
         FROM PROD_COLORS PCL
-        LEFT JOIN PRODUCTS P ON PCL.PROD_NO = P.PROD_NO
-        LEFT JOIN PROD_SIZES PS ON PCL.COLOR_NO = PS.COLOR_NO AND PS.DELETED_SIZE = 'N'
-        LEFT JOIN PROD_IMGS PI ON PCL.COLOR_NO = PI.COLOR_NO
+        INNER JOIN PRODUCTS P ON PCL.PROD_NO = P.PROD_NO
+        INNER JOIN PROD_SIZES PS ON PCL.COLOR_NO = PS.COLOR_NO AND PS.DELETED_SIZE = 'N'
+        INNER JOIN PROD_IMGS PI ON PCL.COLOR_NO = PI.COLOR_NO
         WHERE PCL.COLOR_NO = #{colorNo}
-        ORDER BY PS.PROD_SIZE, PI.IMG_NO
     </select>
-
 
 
     <!--

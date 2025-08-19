@@ -40,15 +40,11 @@ public interface ProductMapper {
      * 상품 기본정보 + 모든 색상 옵션 조회 (1번째 통합 쿼리)
      */
     ProductDetailBundle getProductWithAllColors(int productNo);
-
-    /**
-     * 특정 색상의 상세정보 조회 (사이즈/재고 + 모든 이미지) (2번째 통합 쿼리)
-     */
     ColorDetailsDto getColorDetails(int colorNo);
 
     ProdDetailDto getProduct(@Param("productNo") int productNo);
-    List<ColorProdImgDto> getProdImgByProductNo(@Param("productNo") int productNo);  // 메서드명 변경
-    ProdImagesDto getProdImagesByColorNo(@Param("colorNo") int colorNo);            // 메서드명 변경
+    List<ColorProdImgDto> getProdImgByProductNo(@Param("productNo") int productNo);
+    ProdImagesDto getProdImagesByColorNo(@Param("colorNo") int colorNo);
     SizeAmountDto getSizeAmountByColorNo(@Param("colorNo") int colorNo);
 
 }

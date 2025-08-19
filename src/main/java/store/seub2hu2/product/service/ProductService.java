@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import store.seub2hu2.common.PerformanceLog;
 import store.seub2hu2.order.exception.DatabaseSaveException;
 import store.seub2hu2.order.exception.OutOfStockException;
 import store.seub2hu2.order.exception.ProductNotFoundException;
@@ -38,10 +39,15 @@ public class ProductService {
     }
 
     /**
-     * 상품 전체 조회 API
-     * @param request
-     * @return
+     * 상품 전체 조회 API - 복잡한 검색이므로 여유있는 임계값
      */
+    @PerformanceLog(
+            value = "상품 전체 조회 API",
+            warnThreshold = 1500,     // 1.5초 - 검색 조건, 페이징 등 고려
+            errorThreshold = 5000,    // 5초 - 복잡한 쿼리 허용
+            includeParams = true,     // 검색 조건 확인 중요
+            includeResult = false     // 리스트는 크므로 결과 로깅 제외
+    )
     public ListDto<ProdListDto> getProducts(ProductSearchRequest request) {
 
         int totalRows = productMapper.getTotalRows(request);
@@ -58,38 +64,48 @@ public class ProductService {
         return new ListDto<>(products, pagination);
     }
 
+    /**
+     * 상품 상세 Bundle 조회 - 핵심 API이므로 보통 수준의 임계값
+     */
+    @PerformanceLog(
+            value = "상품 상세 Bundle 조회",
+            warnThreshold = 1,     // 1초 - 사용자 경험 중요
+            errorThreshold = 3000,    // 3초 - 너무 느리면 이탈
+            includeParams = true,     // 어떤 상품/색상인지 추적 중요
+            includeResult = false     // Bundle 객체는 크므로 제외
+    )
     public ProductDetailBundle getProductDetailBundle(int productNo, int colorNo) {
 
-        // 🔥 기존 XML에 있는 쿼리들 그대로 사용
-        ProdDetailDto product = productMapper.getProduct(productNo);  // ✅ 이미 있음
+        ProductDetailBundle productWithColors = productMapper.getProductWithAllColors(productNo);
 
-        // 🔥 나머지는 일단 기존 Service 메서드들 복원
-        List<ColorProdImgDto> colorOptions = getProdImgByProductNo(productNo);  // 기존 Service 메서드
-        SizeAmountDto sizeAmount = getSizeAmountByColorNo(colorNo);             // 기존 Service 메서드
-        ProdImagesDto selectedImages = getImagesByColorNo(colorNo);             // 기존 Service 메서드
+        ColorDetailsDto colorDetails = productMapper.getColorDetails(colorNo);
 
-        return new ProductDetailBundle(product, colorOptions, sizeAmount, selectedImages);
+
+        return new ProductDetailBundle(
+                productWithColors.getProduct()
+                , productWithColors.getColorOptions()
+                , colorDetails.getSizeAmount()
+                , colorDetails.getImages());
     }
 
-    public List<ColorProdImgDto> getProdImgByProductNo(int productNo) {
-        return productMapper.getProdImgByProductNo(productNo);  // 기존 XML 사용
-    }
-
-    public SizeAmountDto getSizeAmountByColorNo(int colorNo) {
-        return productMapper.getSizeAmountByColorNo(colorNo);  // 기존 XML 사용
-    }
-
-    public ProdImagesDto getImagesByColorNo(int colorNo) {
-        return productMapper.getProdImagesByColorNo(colorNo);  // 기존 XML 사용
-    }
-
-    /**
-     * 개별 상품 정보 조회 (주문 등에서 사용)
-     * @param productNo 상품 번호
-     * @return 상품 상세 정보
-     */
+    @PerformanceLog("상품 기본정보 조회")
     public ProdDetailDto getProduct(int productNo) {
         return productMapper.getProduct(productNo);
+    }
+
+    @PerformanceLog("색상 옵션 조회")
+    public List<ColorProdImgDto> getProdImgByProductNo(int productNo) {
+        return productMapper.getProdImgByProductNo(productNo);
+    }
+
+    @PerformanceLog("사이즈/재고 조회")
+    public SizeAmountDto getSizeAmountByColorNo(int colorNo) {
+        return productMapper.getSizeAmountByColorNo(colorNo);
+    }
+
+    @PerformanceLog("이미지 조회")
+    public ProdImagesDto getImagesByColorNo(int colorNo) {
+        return productMapper.getProdImagesByColorNo(colorNo);
     }
 
     /**
