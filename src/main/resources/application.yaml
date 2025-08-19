@@ -5,7 +5,10 @@ spring:
   profiles:
     include: oauth
 
-  # ?????? ??
+  cache:
+    type: simple
+
+  # 데이터베이스 설정
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/seub2hu2?serverTimezone=UTC&characterEncoding=UTF-8
@@ -37,7 +40,7 @@ spring:
     livereload:
       enabled: true
 
-  # Redis ??
+  # Redis 설정
   data:
     redis:
       repositories:

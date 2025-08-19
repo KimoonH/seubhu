@@ -93,7 +93,7 @@
                                 <div class="mb-4">
                                     <c:forEach var="p" items="${colorProdImgDto}">
                                             <c:forEach var="im" items="${p.images}">
-                                                <a href="/product/hit?productNo=${p.product.no}&colorNo=${p.colorNo}"><img src="${im.url}" width=15%/></a>
+                                                <a href="/product/detail?productNo=${p.product.no}&colorNo=${p.colorNo}"><img src="${im.url}" width=15%/></a>
                                             </c:forEach>
                                     </c:forEach>
                                 </div>

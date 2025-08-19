@@ -3,6 +3,7 @@ package store.seub2hu2.product.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import store.seub2hu2.common.PerformanceLog;
@@ -69,7 +70,7 @@ public class ProductService {
      */
     @PerformanceLog(
             value = "상품 상세 Bundle 조회",
-            warnThreshold = 1,     // 1초 - 사용자 경험 중요
+            warnThreshold = 1000,     // 1초 - 사용자 경험 중요
             errorThreshold = 3000,    // 3초 - 너무 느리면 이탈
             includeParams = true,     // 어떤 상품/색상인지 추적 중요
             includeResult = false     // Bundle 객체는 크므로 제외
@@ -93,7 +94,12 @@ public class ProductService {
         return productMapper.getProduct(productNo);
     }
 
-    @PerformanceLog("색상 옵션 조회")
+
+    @PerformanceLog(
+            value = "색상별 이미지 조회 (캐시)",
+            warnThreshold = 200,
+            errorThreshold = 800
+    )
     public List<ColorProdImgDto> getProdImgByProductNo(int productNo) {
         return productMapper.getProdImgByProductNo(productNo);
     }
