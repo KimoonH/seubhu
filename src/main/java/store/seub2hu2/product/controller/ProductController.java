@@ -87,7 +87,7 @@ public class ProductController {
         model.addAttribute("prodImagesDto", bundle.getProdImagesDto());
 
         // 리뷰는 별도 조회 (나중에 최적화 예정)
-        List<ProdReviewDto> prodReviews = prodReviewService.getProdReviews(productNo);         // 3번
+        List<ProdReviewDto> prodReviews = prodReviewService.getProdReviews(productNo);
         model.addAttribute("prodReviews", prodReviews);
 
         return "product/detail";

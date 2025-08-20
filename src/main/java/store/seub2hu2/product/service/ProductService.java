@@ -57,8 +57,6 @@ public class ProductService {
 
         ProductSearchCondition condition = ProductSearchCondition.from(request, pagination);
 
-        // ProdListDto 타입의 데이터를 담는 ListDto 객체를 생성한다.
-        // 상품 목록 ListDto(ProdListDto), 페이정처리 정보(Pagination)을 담는다.
         List<ProdListDto> products = productMapper.getProducts(condition);
         log.debug("조회된 상품 수: {}", products.size());
 
@@ -76,17 +74,64 @@ public class ProductService {
             includeResult = false     // Bundle 객체는 크므로 제외
     )
     public ProductDetailBundle getProductDetailBundle(int productNo, int colorNo) {
+        log.debug("상품 상세 조회 요청: productNo={}, colorNo={}", productNo, colorNo);
 
-        ProductDetailBundle productWithColors = productMapper.getProductWithAllColors(productNo);
+        validateProductParams(productNo, colorNo);
 
-        ColorDetailsDto colorDetails = productMapper.getColorDetails(colorNo);
+        ProductDetailBundle baseProductInfo = getAndValidateBaseProduct(productNo);
+
+        ColorDetailsDto selectedColorDetails = getAndValidateColorDetails(colorNo);
 
 
         return new ProductDetailBundle(
-                productWithColors.getProduct()
-                , productWithColors.getColorOptions()
-                , colorDetails.getSizeAmount()
-                , colorDetails.getImages());
+                baseProductInfo.getProduct()
+                , baseProductInfo.getColorOptions()
+                , selectedColorDetails.getSizeAmount()
+                , selectedColorDetails.getImages());
+    }
+
+    private void validateProductParams(int productNo, int colorNo) {
+        if (productNo <= 0) {
+            log.warn("잘못된 상품번호 요청: {}", productNo);
+            throw new ProductNotFoundException("요청하신 상품을 찾을 수 없습니다.");
+        }
+        if (colorNo <= 0) {
+            log.warn("잘못된 색상번호 요청: {}", colorNo);
+            throw new ProductNotFoundException("요청하신 상품을 찾을 수 없습니다.");
+        }
+    }
+
+    /**
+     * 상품 기본정보 조회 및 검증
+     */
+    private ProductDetailBundle getAndValidateBaseProduct(int productNo) {
+        ProductDetailBundle baseProductInfo = productMapper.getProductWithAllColors(productNo);
+
+        if (baseProductInfo == null) {
+            log.warn("존재하지 않는 상품 요청: productNo={}", productNo);
+            throw new ProductNotFoundException("요청하신 상품을 찾을 수 없습니다.");
+        }
+
+        if (baseProductInfo.getProduct() == null) {
+            log.error("상품 데이터 불일치: productNo={}, baseProductInfo는 존재하지만 product가 null", productNo);
+            throw new ProductNotFoundException("요청하신 상품을 찾을 수 없습니다.");
+        }
+
+        return baseProductInfo;
+    }
+
+    /**
+     * 색상 상세정보 조회 및 검증
+     */
+    private ColorDetailsDto getAndValidateColorDetails(int colorNo) {
+        ColorDetailsDto selectedColorDetails = productMapper.getColorDetails(colorNo);
+
+        if (selectedColorDetails == null) {
+            log.warn("존재하지 않는 색상 요청: colorNo={}", colorNo);
+            throw new ProductNotFoundException("선택하신 색상을 찾을 수 없습니다.");
+        }
+
+        return selectedColorDetails;
     }
 
     @PerformanceLog("상품 기본정보 조회")
@@ -180,5 +225,4 @@ public class ProductService {
             }
         }
     }
-
 }

@@ -23,8 +23,6 @@ public class ProductDetailBundle {
     // 선택된 색상의 모든 이미지들
     private ProdImagesDto selectedColorImages;
 
-    // === JSP 호환성을 위한 기존 형태 반환 메서드들 ===
-
     public ProdDetailDto getProdDetailDto() {
         return product;
     }
