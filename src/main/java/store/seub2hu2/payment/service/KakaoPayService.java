@@ -36,6 +36,7 @@ public class KakaoPayService {
     // 최종적으로 결제 완료 처리를 하는 단계
     @Transactional
     public PaymentReadyResponse payReady(PaymentDto paymentDto) {
+
         validatePaymentDto(paymentDto);
 
         log.info("Pay ready dto = {}", paymentDto);
@@ -64,9 +65,8 @@ public class KakaoPayService {
     }
 
     // 카카오페이 결제 승인
-    // 사용자가 결제 수단을 선택하고 비밀번호를 입력해 결제 인증을 완료한 뒤,
-    // 최종적으로 결제 완료 처리를 하는 단계
     public ApproveResponse payApprove(String tid, String pgToken, int orderNo) {
+
         validateApproveParameters(tid, pgToken, orderNo);
         log.info("결제 승인 요청 - TID: {}, OrderNo: {}", tid, orderNo);
 
@@ -74,8 +74,6 @@ public class KakaoPayService {
     }
 
     // 카카오페이 결제 취소
-    // 사용자가 결제 수단을 선택하고 비밀번호를 입력해 결제 인증을 완료한 뒤,
-    // 최종적으로 결제 취소 처리를 하는 단계
     public CancelResponse payCancel(PaymentDto paymentDto, String tid) {
         validateCancelParameters(paymentDto, tid);
         log.info("결제 취소 요청 - TID: {}, Amount: {}", tid, paymentDto.getTotalAmount());

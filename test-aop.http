@@ -1,0 +1,20 @@
+### AOP 모니터링 테스트
+
+### 1. 결제 승인 테스트 (재시도 모니터링)
+POST http://localhost:8080/api/payment-test/approval-only
+Content-Type: application/json
+
+### 2. 통계 조회 (GET 요청)
+GET http://localhost:8080/api/payment-test/stats
+
+### 3. 통계 초기화
+POST http://localhost:8080/api/payment-test/reset-stats
+Content-Type: application/json
+
+### 4. 결제 취소 테스트
+POST http://localhost:8080/api/payment-test/cancel
+Content-Type: application/json
+
+### 5. 전체 결제 승인 프로세스 테스트
+POST http://localhost:8080/api/payment-test/approve
+Content-Type: application/json

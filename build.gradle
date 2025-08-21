@@ -35,6 +35,10 @@ dependencies {
     implementation 'org.webjars:sockjs-client:1.5.1'  // Optional for mobile
     implementation 'org.webjars:stomp-websocket:2.3.4'
     implementation 'net.nurigo:sdk:4.3.0'
+    // ✨ Spring Retry (새로 추가!)
+    implementation 'org.springframework.retry:spring-retry'
+    implementation 'org.springframework:spring-aspects'
+
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
     implementation 'org.springframework.boot:spring-boot-starter-mail'
     implementation 'org.springframework.security:spring-security-oauth2-client'

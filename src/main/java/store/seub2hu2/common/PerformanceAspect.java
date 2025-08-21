@@ -16,7 +16,6 @@ public class PerformanceAspect {
         String methodName = joinPoint.getSignature().getName();
         String description = performanceLog.value().isEmpty() ? methodName : performanceLog.value();
 
-        //  파라미터 정보 추가
         Object[] args = joinPoint.getArgs();
 
         //  시작 로그 (조건부)
@@ -30,7 +29,6 @@ public class PerformanceAspect {
             Object result = joinPoint.proceed();
             long executionTime = System.currentTimeMillis() - startTime;
 
-            //  임계값에 따른 로그 레벨 조정 (기존 단순 INFO에서 변경)
             logResult(description, executionTime, performanceLog, args, result);
 
             return result;
@@ -46,6 +44,7 @@ public class PerformanceAspect {
             throw e;
         }
     }
+
     /**
      * 새로 추가된 메서드: 임계값에 따른 로그 레벨 결정
      */
@@ -66,7 +65,7 @@ public class PerformanceAspect {
                     description, executionTime, performanceLog.warnThreshold(), paramInfo, resultInfo);
 
         } else {
-            // 기존 형태와 유사하게 유지 (하위 호환성)
+
             log.info("[PERFORMANCE] {} 실행시간: {}ms{}{}",
                     description, executionTime, paramInfo, resultInfo);
         }
@@ -90,7 +89,7 @@ public class PerformanceAspect {
             } else if (arg instanceof String || arg instanceof Number) {
                 sb.append(arg);
             } else {
-                // 복잡한 객체는 클래스명만 표시 (보안 고려)
+
                 sb.append(arg.getClass().getSimpleName());
             }
         }
@@ -111,5 +110,4 @@ public class PerformanceAspect {
 
         return result.getClass().getSimpleName();
     }
-
 }

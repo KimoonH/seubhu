@@ -55,7 +55,7 @@ server:
     whitelabel:
       enabled: false
 
-# ?? ??
+# 로깅 설정
 logging:
   level:
     root: info
@@ -68,10 +68,13 @@ logging:
     store.seub2hu2.payment.mapper: trace
     store.seub2hu2.order.mapper: trace
     store.seub2hu2.mypage.mapper: trace
+    store.seub2hu2.payment: DEBUG
+    store.seub2hu2.common.service: DEBUG
+    org.springframework.retry: DEBUG
   pattern:
     console: "[%d{yyyy-MM-dd HH:mm:ss}] %clr([%50logger{50}])  %msg%n"
 
-# MyBatis ??
+# MyBatis 설정
 mybatis:
   mapper-locations: mybatis/mappers/*.xml
   type-aliases-package: store.seub2hu2.vo
@@ -143,3 +146,31 @@ cloud:
       secret-key: ${AWS_SECRET_KEY}
     s3:
       bucket: 2404-bucket-team-1
+
+payment:
+  retry:
+    # 결제 승인 재시도 설정
+    approval:
+      max-attempts: 3           # 최대 재시도 횟수
+      initial-delay: 1000       # 첫 재시도 대기시간 (ms)
+      multiplier: 2.0           # 대기시간 증가 배수
+      max-delay: 10000          # 최대 대기시간 (ms)
+
+    # 결제 취소 재시도 설정
+    cancel:
+      max-attempts: 5
+      initial-delay: 500
+      multiplier: 1.5
+      max-delay: 5000
+
+  # 🔍 모니터링 설정 추가
+  monitoring:
+    enabled: true  # 모니터링 활성화 여부
+
+    # 슬랙 알림 설정
+slack:
+  webhook:
+    url: https://hooks.slack.com/services/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
+  alerts:
+    enabled: true
+    consecutive-failure-threshold: 3

@@ -26,7 +26,6 @@ public class ProdReviewService {
     @Value("${cloud.aws.s3.bucket}")
     private String bucketName;
 
-
     private final ProdReviewMapper prodReviewMapper;
     private final ProductMapper productMapper;
 

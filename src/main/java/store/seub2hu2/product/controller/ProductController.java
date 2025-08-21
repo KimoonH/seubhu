@@ -80,13 +80,12 @@ public class ProductController {
 
         ProductDetailBundle bundle = productService.getProductDetailBundle(productNo, colorNo);
 
-        // JSP 호환성을 위해 기존 형태로 분리해서 전달
         model.addAttribute("prodDetailDto", bundle.getProdDetailDto());
         model.addAttribute("colorProdImgDto", bundle.getColorProdImgDto());
         model.addAttribute("sizeAmountDto", bundle.getSizeAmountDto());
         model.addAttribute("prodImagesDto", bundle.getProdImagesDto());
 
-        // 리뷰는 별도 조회 (나중에 최적화 예정)
+        //TODO 리뷰는 별도 조회 (나중에 최적화 예정)
         List<ProdReviewDto> prodReviews = prodReviewService.getProdReviews(productNo);
         model.addAttribute("prodReviews", prodReviews);
 
@@ -123,7 +122,6 @@ public class ProductController {
     @PostMapping("reviews/edit")
     public ResponseEntity<String> editReview(@ModelAttribute ProdReview prodReview
                                             ,@AuthenticationPrincipal LoginUser loginUser) {
-
 
 
         try {

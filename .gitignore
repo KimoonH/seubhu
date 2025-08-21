@@ -36,3 +36,12 @@ out/
 ### VS Code ###
 .vscode/
 
+### Configuration files ###
+application.yml
+application.yaml
+application-*.yml
+application-*.yaml
+
+### Environment variables ###
+.env
+.env.*
