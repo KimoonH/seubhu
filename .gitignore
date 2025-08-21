@@ -45,3 +45,10 @@ application-*.yaml
 ### Environment variables ###
 .env
 .env.*
+
+### Test files ###
+test.js
+test-aop.http
+slack-test.http
+simple-test.js
+load-test.js
